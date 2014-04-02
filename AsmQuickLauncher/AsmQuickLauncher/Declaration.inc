@@ -21,6 +21,7 @@ ACTION ENDS
 ;----------------------------------
 
 ;----------procedure---------------
+;==========Recognize.asm===========
 CalTan PROTO,
 	X : SDWORD,
 	Y : SDWORD
@@ -34,6 +35,11 @@ GetDirection PROTO,
 RecognizeTrack PROTO
 
 InitializeTrack PROTO
+
+;==========Graphics.asm============
+DrawLine PROTO,
+	_hDc:DWORD
+
 ;----------------------------------
 
 ;---------variable-----------------
@@ -45,5 +51,5 @@ externdef seqLength: DWORD
 
 ;---------macro--------------------
 MAX_MOUSE_TRACK_LENGTH EQU 1024
- MAX_DIRECTIONS_PER_DWORD EQU 9
+MAX_DIRECTIONS_PER_DWORD EQU 9
 ;----------------------------------

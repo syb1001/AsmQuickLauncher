@@ -21,11 +21,11 @@
     <MASM Include="Recognize.asm">
       <Filter>源文件</Filter>
     </MASM>
+    <MASM Include="Graphics.asm">
+      <Filter>源文件</Filter>
+    </MASM>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Action.inc">
-      <Filter>头文件</Filter>
-    </None>
     <None Include="Declaration.inc">
       <Filter>头文件</Filter>
     </None>

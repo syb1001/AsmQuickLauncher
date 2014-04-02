@@ -11,11 +11,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <MASM Include="Graphics.asm" />
     <MASM Include="Main.asm" />
     <MASM Include="Recognize.asm" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Action.inc" />
     <None Include="Declaration.inc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

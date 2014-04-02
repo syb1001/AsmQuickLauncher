@@ -1,76 +1,35 @@
-	.386
-	.model flat,stdcall
-	option casemap:none
+.386
+.model flat, stdcall
+option casemap:none
 
-;--------------------------------
+;--------------Include---------------------
 include Declaration.inc
-
-;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-; 数据段
-;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-		.const
-
-szClassName	db	'MyClass',0
-szCaptionMain	db	'My first Window !',0
-szText		db	'Win32 Assembly, Simple and powerful !',0
-
-;--------------Local Path------------------
-szOpen		db	'open',0
-szPathExplorer	db	'explorer.exe',0
-szPathNotepad	db	'notepad.exe',0
-szPathText	db	'C:\\',0
 ;------------------------------------------
 
-		.data?
-hInstance	dd		?
-hWinMain	dd		?
-isLButtonDown BYTE 0
-isRButtonDown BYTE 0
+.const
+;--------------Static String---------------
+szClassName		db	'MyClass',0
+szCaptionMain	db	'My first Window !',0
+szText			db	'Win32 Assembly, Simple and powerful !',0
+
+;--------------Local Path------------------
+szOpen			db	'open',0
+szPathExplorer	db	'explorer.exe',0
+szPathNotepad	db	'notepad.exe',0
+szPathText		db	'C:\\',0
+;------------------------------------------
+
+.data?
+;--------------should be local vars?-------
+hInstance		dd		?
+hWinMain		dd		?
+isLButtonDown	BYTE	0
+isRButtonDown	BYTE	0
 		
-;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-; 代码段
-;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-		.code
+.code
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; 窗口过程
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-DrawLine PROC uses ecx edi esi , _hDc
-		local	@stPointx, @stPointy, @edPointx, @edPointy
-
-		.if trackLength > 1
-			invoke CreatePen, PS_SOLID, 3, 0
-			invoke SelectObject, _hDc, eax
-			invoke DeleteObject, eax
-			mov ecx, trackLength
-			sub ecx, 1
-		ShortLine:
-			push ecx
-			.if ecx >= 1
-				mov edi, OFFSET trackPoint
-				mov esi, ecx
-				imul esi, SIZEOF POINT
-				add edi, esi
-				mov esi, (POINT PTR [edi]).x
-				mov @stPointx, esi
-				mov esi, (POINT PTR [edi]).y
-				mov @stPointy, esi
-				sub edi, SIZEOF POINT
-				mov esi, (POINT PTR [edi]).x
-				mov @edPointx, esi
-				mov esi, (POINT PTR [edi]).y
-				mov @edPointy, esi
-				invoke MoveToEx, _hDc, @stPointx, @stPointy, NULL
-				invoke LineTo, _hDc, @edPointx, @edPointy
-			.endif
-			pop ecx
-			loop ShortLine
-		.endif
-		ret
-
-DrawLine EndP
-
-
 _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 		local	@stPs:PAINTSTRUCT
 		local	@stRect:RECT
