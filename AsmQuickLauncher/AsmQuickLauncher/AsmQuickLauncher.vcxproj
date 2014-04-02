@@ -12,6 +12,11 @@
   </ItemGroup>
   <ItemGroup>
     <MASM Include="Main.asm" />
+    <MASM Include="Recognize.asm" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Action.inc" />
+    <None Include="Declaration.inc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A27801C3-CAB7-4897-B698-0B817C79F464}</ProjectGuid>
