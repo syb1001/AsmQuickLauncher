@@ -14,9 +14,16 @@
     <MASM Include="Graphics.asm" />
     <MASM Include="Main.asm" />
     <MASM Include="Recognize.asm" />
+    <MASM Include="UI.asm" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Declaration.inc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="AsmQuickLauncher.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A27801C3-CAB7-4897-B698-0B817C79F464}</ProjectGuid>

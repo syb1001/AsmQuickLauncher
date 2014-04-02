@@ -38,8 +38,11 @@ InitializeTrack PROTO
 
 ;==========Graphics.asm============
 DrawLine PROTO,
-	_hDc:DWORD
+	_hDc: DWORD
 
+;==========UI.asm==================
+ProcessMenuEvents PROTO,
+	evt: DWORD
 ;----------------------------------
 
 ;---------variable-----------------
@@ -49,7 +52,20 @@ externdef trackSeq: DWORD
 externdef seqLength: DWORD
 ;----------------------------------
 
+;---------handler------------------
+externdef	hInstance:	DWORD
+externdef	hWinMain:	DWORD
+externdef	hMenu:		DWORD ; handler of main menu
+;----------------------------------
+
 ;---------macro--------------------
 MAX_MOUSE_TRACK_LENGTH EQU 1024
 MAX_DIRECTIONS_PER_DWORD EQU 9
 ;----------------------------------
+
+;---------resource symbol----------
+;=========menu resources===========
+IDR_MainMenu		equ		101
+ID_MenuExit			equ		40001
+ID_MenuEnable		equ		40002
+ID_MenuEdit			equ		40003

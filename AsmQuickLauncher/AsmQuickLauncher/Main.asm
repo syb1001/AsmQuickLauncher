@@ -20,7 +20,7 @@ szPathText		db	'C:\\',0
 ;------------------------------------------
 
 .data?
-;--------------should be local vars?-------
+;--------------variables-------------------
 hInstance		dd		?
 hWinMain		dd		?
 isLButtonDown	BYTE	0
@@ -54,6 +54,11 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 		.elseif	eax ==	WM_CLOSE
 			invoke	DestroyWindow,hWinMain
 			invoke	PostQuitMessage,NULL
+;********************************************************************
+		.elseif eax == WM_COMMAND
+			mov	eax, wParam
+			movzx	eax, ax
+			invoke	ProcessMenuEvents, eax
 ;********************************************************************
 		.elseif eax == WM_LBUTTONDOWN
 			mov al, 1
@@ -122,6 +127,11 @@ _WinMain	proc
 
 		invoke	GetModuleHandle,NULL
 		mov	hInstance,eax
+
+		; load the main menu
+		invoke	LoadMenu, hInstance, IDR_MainMenu
+		mov		hMenu, eax
+
 		invoke	RtlZeroMemory,addr @stWndClass,sizeof @stWndClass
 ;********************************************************************
 ; ×¢²á´°¿ÚÀà
@@ -142,7 +152,7 @@ _WinMain	proc
 		invoke	CreateWindowEx,WS_EX_CLIENTEDGE,offset szClassName,offset szCaptionMain,\
 			WS_OVERLAPPEDWINDOW,\
 			100,100,600,400,\
-			NULL,NULL,hInstance,NULL
+			NULL,hMenu,hInstance,NULL
 		mov	hWinMain,eax
 		invoke	ShowWindow,hWinMain,SW_SHOWNORMAL
 		invoke	UpdateWindow,hWinMain
