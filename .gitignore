@@ -2,3 +2,5 @@
 /AsmQuickLauncher/ipch
 /AsmQuickLauncher/AsmQuickLauncher/Debug
 *.sdf
+*.opensdf
+*.suo
