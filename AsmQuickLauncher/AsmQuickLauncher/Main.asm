@@ -104,7 +104,8 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 			mov edi, OFFSET trackPoint
 			mov al, 0
 			mov isLButtonDown, al
-
+			invoke TestProc
+			invoke AddNewAction, ADDR trainSeq, trainLength
 			invoke RecognizeTrack			; recognize the gesture
 			invoke InitializeTrack			; clean the length
 

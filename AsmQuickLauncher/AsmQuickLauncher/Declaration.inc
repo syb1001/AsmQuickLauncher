@@ -1,26 +1,29 @@
-;----------include-----------------
+;==========include=================
 include		windows.inc
 include		gdi32.inc
 include		user32.inc
 include		kernel32.inc
+include 	masm32.inc
 
 includelib	gdi32.lib
 includelib	user32.lib
 includelib	kernel32.lib
+includelib    masm32.lib
 
 include shell32.inc			; ShellExecute
 includelib shell32.lib
-;----------------------------------
+;==================================
 
-;----------struct------------------
+;==========struct==================
 ACTION STRUCT
 	len dd 0
-	trackSeq dd 100 DUP(0)
+	seq dd 100 DUP(0)
 	path db 1024 DUP(0)
 ACTION ENDS 
-;----------------------------------
+;==================================
 
-;----------procedure---------------
+;==========procedure===============
+;----------Track & Recognition-----
 CalTan PROTO,
 	X : SDWORD,
 	Y : SDWORD
@@ -34,16 +37,35 @@ GetDirection PROTO,
 RecognizeTrack PROTO
 
 InitializeTrack PROTO
-;----------------------------------
 
-;---------variable-----------------
+Match PROTO
+;----------------------------------
+;==================================
+
+;============variable==============
+;------------Mouse track-----------
 externdef trackPoint: PTR POINT 
 externdef trackLength: DWORD
 externdef trackSeq: DWORD
 externdef seqLength: DWORD
+externdef trainSeq: DWORD
+externdef trainLength: DWORD
 ;----------------------------------
+externdef train: DWORD
 
-;---------macro--------------------
+;------------Action----------------
+AddNewAction PROTO,
+	seq: PTR DWORD,
+	len: DWORD
+
+;------------DEBUG-----------------
+MessageBoxDwordArr PROTO,
+	pArr: PTR DWORD,
+	len: DWORD
+TestProc PROTO
+;==================================
+
+;=========macro====================
 MAX_MOUSE_TRACK_LENGTH EQU 1024
- MAX_DIRECTIONS_PER_DWORD EQU 9
-;----------------------------------
+MAX_DIRECTIONS_PER_DWORD EQU 16
+;==================================
