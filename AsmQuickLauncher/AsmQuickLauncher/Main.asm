@@ -1,76 +1,35 @@
-	.386
-	.model flat,stdcall
-	option casemap:none
+.386
+.model flat, stdcall
+option casemap:none
 
-;--------------------------------
+;================Include===================
 include Declaration.inc
+;==========================================
 
-;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-; 数据段
-;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-		.const
+.const
+;=============Static String================
+szClassName		db	'MyClass',0
+szCaptionMain	db	'Asm Quick Launcher',0
+szText			db	'Drag Your Mouse Here',0
 
-szClassName	db	'MyClass',0
-szCaptionMain	db	'My first Window !',0
-szText		db	'Win32 Assembly, Simple and powerful !',0
-
-;--------------Local Path------------------
-szOpen		db	'open',0
+;===============Local Path=================
+szOpen			db	'open',0
 szPathExplorer	db	'explorer.exe',0
 szPathNotepad	db	'notepad.exe',0
-szPathText	db	'C:\\',0
-;------------------------------------------
+szPathText		db	'C:\\',0
+;==========================================
 
-		.data?
-hInstance	dd		?
-hWinMain	dd		?
-isLButtonDown BYTE 0
-isRButtonDown BYTE 0
+.data
+;================Variables=================
+hInstance		dd		?
+hWinMain		dd		?
+isLButtonDown	BYTE	0
+isRButtonDown	BYTE	0
 		
-;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-; 代码段
-;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-		.code
+.code
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; 窗口过程
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-DrawLine PROC uses ecx edi esi , _hDc
-		local	@stPointx, @stPointy, @edPointx, @edPointy
-
-		.if trackLength > 1
-			invoke CreatePen, PS_SOLID, 3, 0
-			invoke SelectObject, _hDc, eax
-			invoke DeleteObject, eax
-			mov ecx, trackLength
-			sub ecx, 1
-		ShortLine:
-			push ecx
-			.if ecx >= 1
-				mov edi, OFFSET trackPoint
-				mov esi, ecx
-				imul esi, SIZEOF POINT
-				add edi, esi
-				mov esi, (POINT PTR [edi]).x
-				mov @stPointx, esi
-				mov esi, (POINT PTR [edi]).y
-				mov @stPointy, esi
-				sub edi, SIZEOF POINT
-				mov esi, (POINT PTR [edi]).x
-				mov @edPointx, esi
-				mov esi, (POINT PTR [edi]).y
-				mov @edPointy, esi
-				invoke MoveToEx, _hDc, @stPointx, @stPointy, NULL
-				invoke LineTo, _hDc, @edPointx, @edPointy
-			.endif
-			pop ecx
-			loop ShortLine
-		.endif
-		ret
-
-DrawLine EndP
-
-
 _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 		local	@stPs:PAINTSTRUCT
 		local	@stRect:RECT
@@ -95,6 +54,11 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 		.elseif	eax ==	WM_CLOSE
 			invoke	DestroyWindow,hWinMain
 			invoke	PostQuitMessage,NULL
+;********************************************************************
+		.elseif eax == WM_COMMAND
+			mov	eax, wParam
+			movzx	eax, ax
+			invoke	ProcessMenuEvents, eax
 ;********************************************************************
 		.elseif eax == WM_LBUTTONDOWN
 			mov al, 1
@@ -164,6 +128,11 @@ _WinMain	proc
 
 		invoke	GetModuleHandle,NULL
 		mov	hInstance,eax
+
+		; load the main menu
+		invoke	LoadMenu, hInstance, IDR_MainMenu
+		mov		hMenu, eax
+
 		invoke	RtlZeroMemory,addr @stWndClass,sizeof @stWndClass
 ;********************************************************************
 ; 注册窗口类
@@ -184,7 +153,7 @@ _WinMain	proc
 		invoke	CreateWindowEx,WS_EX_CLIENTEDGE,offset szClassName,offset szCaptionMain,\
 			WS_OVERLAPPEDWINDOW,\
 			100,100,600,400,\
-			NULL,NULL,hInstance,NULL
+			NULL,hMenu,hInstance,NULL
 		mov	hWinMain,eax
 		invoke	ShowWindow,hWinMain,SW_SHOWNORMAL
 		invoke	UpdateWindow,hWinMain

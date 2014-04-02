@@ -21,13 +21,26 @@
     <MASM Include="Recognize.asm">
       <Filter>源文件</Filter>
     </MASM>
+    <MASM Include="Graphics.asm">
+      <Filter>源文件</Filter>
+    </MASM>
+    <MASM Include="UI.asm">
+      <Filter>源文件</Filter>
+    </MASM>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Action.inc">
-      <Filter>头文件</Filter>
-    </None>
     <None Include="Declaration.inc">
       <Filter>头文件</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="AsmQuickLauncher.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>
