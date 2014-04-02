@@ -2,25 +2,25 @@
 .model flat, stdcall
 option casemap:none
 
-;--------------Include---------------------
+;================Include===================
 include Declaration.inc
-;------------------------------------------
+;==========================================
 
 .const
-;--------------Static String---------------
+;=============Static String================
 szClassName		db	'MyClass',0
-szCaptionMain	db	'My first Window !',0
-szText			db	'Win32 Assembly, Simple and powerful !',0
+szCaptionMain	db	'Asm Quick Launcher',0
+szText			db	'Drag Your Mouse Here',0
 
-;--------------Local Path------------------
+;===============Local Path=================
 szOpen			db	'open',0
 szPathExplorer	db	'explorer.exe',0
 szPathNotepad	db	'notepad.exe',0
 szPathText		db	'C:\\',0
-;------------------------------------------
+;==========================================
 
-.data?
-;--------------variables-------------------
+.data
+;================Variables=================
 hInstance		dd		?
 hWinMain		dd		?
 isLButtonDown	BYTE	0
@@ -68,7 +68,8 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 			mov edi, OFFSET trackPoint
 			mov al, 0
 			mov isLButtonDown, al
-
+			invoke TestProc
+			invoke AddNewAction, ADDR trainSeq, trainLength
 			invoke RecognizeTrack			; recognize the gesture
 			invoke InitializeTrack			; clean the length
 
