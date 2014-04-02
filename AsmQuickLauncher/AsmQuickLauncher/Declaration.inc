@@ -1,3 +1,6 @@
+IFNDEF DECLARACTION_INC
+DECLARACTION_INC equ <1>
+
 ;----------include-----------------
 include		windows.inc
 include		gdi32.inc
@@ -69,3 +72,9 @@ IDR_MainMenu		equ		101
 ID_MenuExit			equ		40001
 ID_MenuEnable		equ		40002
 ID_MenuEdit			equ		40003
+
+ELSE
+	echo ------------------------------------------
+	echo WARNING duplicate include Declaration.inc
+	echo ------------------------------------------
+ENDIF
