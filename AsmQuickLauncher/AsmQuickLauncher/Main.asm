@@ -25,16 +25,6 @@ includelib	kernel32.lib
 include shell32.inc			; ShellExecute
 includelib shell32.lib
 
-;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-;宏常量定义
-;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-IDR_Menu		equ		101
-IDD_EditDialog	equ		103
-ID_Edit			equ		40008
-ID_Exit			equ		40007
-ID_Enabled		equ		40009
-
-
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; 数据段
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -50,11 +40,11 @@ szOpen		db	'open',0
 szPathExplorer	db	'explorer.exe',0
 szPathNotepad	db	'notepad.exe',0
 szPathText	db	'C:\\',0
+;------------------------------------------
 
 		.data?
 hInstance	dd		?
 hWinMain	dd		?
-hMenu		dd		?
 isLButtonDown BYTE 0
 isRButtonDown BYTE 0
 
@@ -147,7 +137,7 @@ LOCAL delX : SDWORD, delY : SDWORD
 
 	.ELSEIF 						; in the left part
 
-		INVOKE CalTan, edx, esi	; tan = tan(delY/ddelX)
+		INVOKE CalTan, edx, esi	; tan = tan(delY/delX)
 		mov edi, eax				
 
 		.IF delY == 0				; along Y-axis
@@ -237,17 +227,40 @@ InitializeTrack PROC
 	
 InitializeTrack EndP
 
-;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-_ProcDlgMain	proc	uses ebx edi esi hWnd, wMsg, wParam, lParam
-		
+DrawLine PROC uses ecx edi esi , _hDc
+		local	@stPointx, @stPointy, @edPointx, @edPointy
 
-		mov		eax, wMsg
-		.if eax == WM_CLOSE
-			invoke	EndDialog, hWnd, NULL
+		.if trackLength > 1
+			invoke CreatePen, PS_SOLID, 3, 0
+			invoke SelectObject, _hDc, eax
+			invoke DeleteObject, eax
+			mov ecx, trackLength
+			sub ecx, 1
+		ShortLine:
+			push ecx
+			.if ecx >= 1
+				mov edi, OFFSET trackPoint
+				mov esi, ecx
+				imul esi, SIZEOF POINT
+				add edi, esi
+				mov esi, (POINT PTR [edi]).x
+				mov @stPointx, esi
+				mov esi, (POINT PTR [edi]).y
+				mov @stPointy, esi
+				sub edi, SIZEOF POINT
+				mov esi, (POINT PTR [edi]).x
+				mov @edPointx, esi
+				mov esi, (POINT PTR [edi]).y
+				mov @edPointy, esi
+				invoke MoveToEx, _hDc, @stPointx, @stPointy, NULL
+				invoke LineTo, _hDc, @edPointx, @edPointy
+			.endif
+			pop ecx
+			loop ShortLine
 		.endif
 		ret
-_ProcDlgMain	endp
-;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+DrawLine EndP
 
 
 _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
@@ -257,6 +270,7 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 
 		mov	eax,uMsg
 
+;********************************************************************
 		.if	eax ==	WM_PAINT
 			invoke	BeginPaint,hWnd,addr @stPs
 			mov	@hDc,eax
@@ -266,24 +280,14 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 				addr @stRect,\
 				DT_SINGLELINE or DT_CENTER or DT_VCENTER
 
+			invoke DrawLine, @hDc
+
 			invoke	EndPaint,hWnd,addr @stPs
 ;********************************************************************
 		.elseif	eax ==	WM_CLOSE
 			invoke	DestroyWindow,hWinMain
 			invoke	PostQuitMessage,NULL
 ;********************************************************************
-		; 处理菜单事件
-		.elseif eax == WM_COMMAND
-			mov	eax, wParam
-			movzx	eax, ax
-			.if eax == ID_Edit
-				invoke	DialogBoxParam, hInstance, IDD_EditDialog, hWnd, offset _ProcDlgMain, NULL
-			.elseif eax == ID_Exit
-				invoke	DestroyWindow,hWinMain
-				invoke	PostQuitMessage,NULL
-			.elseif eax == ID_Enabled
-				invoke	MessageBox,hWinMain,addr szPathNotepad,addr szPathNotepad,MB_OK
-			.endif
 		.elseif eax == WM_LBUTTONDOWN
 			mov al, 1
 			mov isLButtonDown, al
@@ -304,15 +308,37 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 				add edi, ecx
 				movzx esi, WORD PTR lParam
 				mov (POINT PTR [edi]).x, esi
+				;mov @edPointx, esi
 				movzx esi, WORD PTR [lParam + 2]
 				mov (POINT PTR [edi]).y, esi
+				;mov @edPointy, esi
 				inc trackLength
-
-				;.if trackLength > MAX_MOUSE_TRACK_LENGTH
-					; warning !
-				;.endif 
+				;.if trackLength > 1
+				;	invoke BeginPaint, hWnd, addr @stPs
+				;	mov @hDc, eax
+				;	invoke CreatePen, PS_SOLID, 3, 0
+				;	invoke SelectObject, @hDc, eax
+				;	invoke DeleteObject, eax
+				;	mov edi, OFFSET trackPoint
+				;	mov ecx, trackLength
+				;	sub ecx, 2
+				;	imul ecx, SIZEOF POINT
+				;	add edi, ecx
+				;	mov esi, (POINT PTR [edi]).x
+				;	mov @stPointx, esi
+				;	mov esi, (POINT PTR [edi]).y
+				;	mov @stPointy, esi
+				;	invoke MoveToEx, @hDc, @stPointx, @stPointy, NULL
+				;	invoke LineTo, @hDc, @edPointx, @edPointy
+				;	invoke EndPaint, hWnd, addr @stPs
+				;.endif
+				.if trackLength == 1024
+					mov al, 0
+					mov isLButtonDown, al
+				.endif 
 
 			.endif
+			invoke	InvalidateRect,hWnd,NULL,TRUE
 		.else
 			invoke	DefWindowProc,hWnd,uMsg,wParam,lParam
 			ret
@@ -322,16 +348,13 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 		ret
 
 _ProcWinMain	endp
+;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 _WinMain	proc
 		local	@stWndClass:WNDCLASSEX
 		local	@stMsg:MSG
 
 		invoke	GetModuleHandle,NULL
 		mov	hInstance,eax
-		; 读取菜单
-		invoke	LoadMenu, hInstance, IDR_Menu
-		mov		hMenu, eax
-
 		invoke	RtlZeroMemory,addr @stWndClass,sizeof @stWndClass
 ;********************************************************************
 ; 注册窗口类
@@ -352,7 +375,7 @@ _WinMain	proc
 		invoke	CreateWindowEx,WS_EX_CLIENTEDGE,offset szClassName,offset szCaptionMain,\
 			WS_OVERLAPPEDWINDOW,\
 			100,100,600,400,\
-			NULL,hMenu,hInstance,NULL
+			NULL,NULL,hInstance,NULL
 		mov	hWinMain,eax
 		invoke	ShowWindow,hWinMain,SW_SHOWNORMAL
 		invoke	UpdateWindow,hWinMain
