@@ -57,6 +57,9 @@ TestProc PROTO
 DrawLine PROTO,
 	_hDc: DWORD
 
+CreateBitMap PROTO, 
+	_hDc: DWORD
+
 ;---------------UI-----------------
 ProcessMenuEvents PROTO,
 	evt: DWORD
@@ -93,6 +96,10 @@ IDR_MainMenu		equ		101
 ID_MenuExit			equ		40001
 ID_MenuEnable		equ		40002
 ID_MenuEdit			equ		40003
+
+;---------window attribute-----------
+WINDOW_WIDTH	equ 600
+WINDOW_HEIGHT	equ 400
 ;----------------------------------
 ;==================================
 
