@@ -41,15 +41,12 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 		.if	eax ==	WM_PAINT
 			invoke	BeginPaint,hWnd,addr @stPs
 			mov	@hDc,eax
-
-			invoke	GetClientRect,hWnd,addr @stRect
-			invoke	DrawText,@hDc,addr szText,-1,\
-				addr @stRect,\
-				DT_SINGLELINE or DT_CENTER or DT_VCENTER
-
-			invoke DrawLine, @hDc
-
+			invoke CreateBitMap, @hDc
 			invoke	EndPaint,hWnd,addr @stPs
+;********************************************************************
+		.elseif	eax ==	WM_CREATE
+			mov	eax,hWnd
+			mov	hWinMain,eax
 ;********************************************************************
 		.elseif	eax ==	WM_CLOSE
 			invoke	DestroyWindow,hWinMain
@@ -72,6 +69,7 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 			invoke AddNewAction, ADDR trainSeq, trainLength
 			invoke RecognizeTrack			; recognize the gesture
 			invoke InitializeTrack			; clean the length
+			invoke	InvalidateRect,hWnd,NULL,1
 
 		.elseif eax == WM_MOUSEMOVE
 			.if isLButtonDown == 1
@@ -81,37 +79,16 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 				add edi, ecx
 				movzx esi, WORD PTR lParam
 				mov (POINT PTR [edi]).x, esi
-				;mov @edPointx, esi
 				movzx esi, WORD PTR [lParam + 2]
 				mov (POINT PTR [edi]).y, esi
-				;mov @edPointy, esi
 				inc trackLength
-				;.if trackLength > 1
-				;	invoke BeginPaint, hWnd, addr @stPs
-				;	mov @hDc, eax
-				;	invoke CreatePen, PS_SOLID, 3, 0
-				;	invoke SelectObject, @hDc, eax
-				;	invoke DeleteObject, eax
-				;	mov edi, OFFSET trackPoint
-				;	mov ecx, trackLength
-				;	sub ecx, 2
-				;	imul ecx, SIZEOF POINT
-				;	add edi, ecx
-				;	mov esi, (POINT PTR [edi]).x
-				;	mov @stPointx, esi
-				;	mov esi, (POINT PTR [edi]).y
-				;	mov @stPointy, esi
-				;	invoke MoveToEx, @hDc, @stPointx, @stPointy, NULL
-				;	invoke LineTo, @hDc, @edPointx, @edPointy
-				;	invoke EndPaint, hWnd, addr @stPs
-				;.endif
 				.if trackLength == 1024
 					mov al, 0
 					mov isLButtonDown, al
 				.endif 
 
 			.endif
-			invoke	InvalidateRect,hWnd,NULL,TRUE
+			invoke	InvalidateRect,hWnd,NULL,0
 		.else
 			invoke	DefWindowProc,hWnd,uMsg,wParam,lParam
 			ret
@@ -152,7 +129,7 @@ _WinMain	proc
 ;********************************************************************
 		invoke	CreateWindowEx,WS_EX_CLIENTEDGE,offset szClassName,offset szCaptionMain,\
 			WS_OVERLAPPEDWINDOW,\
-			100,100,600,400,\
+			100,100,WINDOW_WIDTH,WINDOW_HEIGHT,\
 			NULL,hMenu,hInstance,NULL
 		mov	hWinMain,eax
 		invoke	ShowWindow,hWinMain,SW_SHOWNORMAL
