@@ -40,5 +40,29 @@ DrawLine PROC uses ecx edi esi, _hDc
 
 DrawLine EndP
 
+CreateBitMap PROC, _hDc
+		local	@hDc
+		local	@hBmpBack:DWORD, @hDcBmp:DWORD
+		local	@white:DWORD
+
+		invoke	CreateCompatibleDC,_hDc
+		mov	@hDcBmp,eax
+		invoke CreateCompatibleBitmap,_hDc,WINDOW_WIDTH, WINDOW_HEIGHT
+		mov	@hBmpBack,eax
+		invoke SelectObject,@hDcBmp,@hBmpBack
+		;invoke	ReleaseDC,hWinMain,@hDc
+		invoke BitBlt,@hDcBmp,0, 0, WINDOW_WIDTH, WINDOW_HEIGHT,_hDc,0,0 ,SRCCOPY
+		invoke DrawLine, @hDcBmp
+		invoke BitBlt,_hDc,0, 0,WINDOW_WIDTH, WINDOW_HEIGHT,@hDcBmp,0,0 ,SRCCOPY
+			
+		
+		invoke DeleteDC, @hDcBmp
+		invoke DeleteObject, @hDcBmp
+		invoke DeleteObject, @hBmpBack
+
+		ret
+
+CreateBitMap endp
+
 
 END
