@@ -8,12 +8,14 @@ include		user32.inc
 include		kernel32.inc
 include		masm32.inc
 include		shell32.inc ; ShellExecute
+include		Comdlg32.inc
 
 includelib	gdi32.lib
 includelib	user32.lib
 includelib	kernel32.lib
 includelib	masm32.lib
 includelib	shell32.lib
+includelib	Comdlg32.lib
 ;==================================
 
 ;=============struct===============
