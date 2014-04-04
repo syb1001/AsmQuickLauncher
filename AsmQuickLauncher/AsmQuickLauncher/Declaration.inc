@@ -64,6 +64,13 @@ CreateBitMap PROTO,
 ProcessMenuEvents PROTO,
 	evt: DWORD
 
+;-------------Dialog---------------
+_ProcDlgMain PROTO,
+	hWnd: DWORD,
+	wMsg: DWORD,
+	wParam: DWORD,
+	lParam: DWORD
+
 ;----------------------------------
 ;==================================
 
@@ -96,6 +103,15 @@ IDR_MainMenu		equ		101
 ID_MenuExit			equ		40001
 ID_MenuEnable		equ		40002
 ID_MenuEdit			equ		40003
+;--------dialog resources----------
+IDD_EditDialog		equ		102
+IDC_GestureList		equ		1001
+IDC_GestureHint		equ		1004
+IDC_GesturePath		equ		1008
+IDC_ChooseFile		equ		1009
+IDC_ChooseDirectory	equ		1010
+IDC_EditGesture		equ		1011
+
 
 ;---------window attribute-----------
 WINDOW_WIDTH	equ 600
