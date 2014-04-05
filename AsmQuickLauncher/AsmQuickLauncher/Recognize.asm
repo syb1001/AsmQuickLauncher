@@ -1,5 +1,4 @@
-
-	.386
+.386
 .model flat,stdcall
 option casemap:none
 
@@ -259,9 +258,11 @@ Match ENDP
 
 AddNewAction PROC uses ebx esi edi edx,
 	seq: PTR DWORD,
-	len: DWORD
-LOCAL tmpAdd:DWORD
+	len: DWORD,
+	path: PTR BYTE
+LOCAL seqStartPos:DWORD, pathStartPos:DWORD
 
+;--------set sequence-----------------------------------
 	mov ebx, OFFSET actionMap 	; point to the first element of actionMap
 	mov esi, actionLen			
 	mov eax, TYPE ACTION
@@ -272,7 +273,7 @@ LOCAL tmpAdd:DWORD
 	mov (ACTION PTR [edi]).len, ecx
 
 	lea esi, (ACTION PTR [edi]).seq 
-	mov tmpAdd, esi
+	mov seqStartPos, esi
 
 	mov edi, seq 				; point to the first element of seq 
 @@:
@@ -283,14 +284,25 @@ LOCAL tmpAdd:DWORD
 	add edi, TYPE DWORD
 	loop @B
 
-	INVOKE MessageBoxDwordArr, tmpAdd, len
+;--------set responsive aciton path----------------
+	mov ebx, seqStartPos
+	mov eax,  MAX_SEQ_LEN
+	lea esi, [ebx + eax * TYPE DWORD]		; esi points to the start position of path
+	mov pathStartPos, esi 
+	INVOKE lstrcpy, pathStartPos, path
+;-------------end-----------------------------------
+	
+	inc actionLen
+
+	INVOKE MessageBoxDwordArr, seqStartPos, len, pathStartPos
 
 	ret 	
 AddNewAction ENDP
 
 MessageBoxDwordArr PROC uses eax ebx ecx edx esi edi,
 	pArr: PTR DWORD,
-	len: DWORD
+	len: DWORD,
+	path: PTR BYTE
 
 	mov ecx, len 
 	mov ebx, pArr
@@ -304,9 +316,7 @@ MessageBoxDwordArr PROC uses eax ebx ecx edx esi edi,
 	add ebx, TYPE DWORD	
 	loop @B
 
-	mov eax, len
-	INVOKE dw2a, eax, OFFSET tmpStr2
- 	INVOKE MessageBox, 0, OFFSET tmpStr, OFFSET tmpStr2, 0
+ 	INVOKE MessageBox, 0, OFFSET tmpStr, path, 0
 	ret 
 MessageBoxDwordArr ENDP
 
@@ -321,7 +331,6 @@ InitializeTrack EndP
 
 TestProc PROC uses eax ebx 
 
-
 	mov ecx, 10
 	mov trainLength, ecx 
 
@@ -334,7 +343,7 @@ TestProc PROC uses eax ebx
 	add ebx, TYPE DWORD
 	loop @B
 
-	invoke MessageBoxDwordArr, ADDR trainSeq, 10
+	;invoke MessageBoxDwordArr, ADDR trainSeq, 10
 	ret 
 
 TestProc ENDP
