@@ -27,6 +27,9 @@
     <MASM Include="UI.asm">
       <Filter>源文件</Filter>
     </MASM>
+    <MASM Include="FileOperation.asm">
+      <Filter>源文件</Filter>
+    </MASM>
   </ItemGroup>
   <ItemGroup>
     <None Include="Declaration.inc">

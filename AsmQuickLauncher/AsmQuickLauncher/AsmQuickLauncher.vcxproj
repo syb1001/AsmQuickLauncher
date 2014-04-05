@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <MASM Include="FileOperation.asm" />
     <MASM Include="Graphics.asm" />
     <MASM Include="Main.asm" />
     <MASM Include="Recognize.asm" />

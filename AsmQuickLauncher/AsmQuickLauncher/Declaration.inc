@@ -14,12 +14,13 @@ includelib	user32.lib
 includelib	kernel32.lib
 includelib	masm32.lib
 includelib	shell32.lib
+includelib MSVCRT.LIB
 ;==================================
 
 ;=============struct===============
 ACTION STRUCT
 	len dd 0
-	seq dd 100 DUP(0)
+	seq dd 32 DUP(0)
 	path db 1024 DUP(0)
 ACTION ENDS 
 ;==================================
@@ -45,12 +46,15 @@ Match PROTO
 ;-------------Action---------------
 AddNewAction PROTO,
 	seq: PTR DWORD,
-	len: DWORD
+	len: DWORD,
+	path: PTR BYTE
 
 ;-------------DEBUG----------------
 MessageBoxDwordArr PROTO,
 	pArr: PTR DWORD,
-	len: DWORD
+	len: DWORD,
+	path: PTR BYTE
+	
 TestProc PROTO
 
 ;------------Graphics--------------
@@ -64,7 +68,16 @@ CreateBitMap PROTO,
 ProcessMenuEvents PROTO,
 	evt: DWORD
 
+;---------------file---------------
+ImportAcitons PROTO
+ExportActions PROTO
+ConvertDword2Str PROTO,
+	num: DWORD,
+	s: PTR BYTE 
 ;----------------------------------
+
+
+
 ;==================================
 
 ;============variable==============
@@ -78,6 +91,10 @@ externdef	trainLength:	DWORD
 ;----------------------------------
 externdef train: DWORD
 
+; ---------action map-------------
+externdef actionMap: PTR ACTION
+externdef actionLen: DWORD 
+
 ;-------------handler--------------
 externdef	hInstance:	DWORD
 externdef	hWinMain:	DWORD
@@ -86,8 +103,15 @@ externdef	hMenu:		DWORD ; handler of main menu
 ;==================================
 
 ;=============macro================
+;------------struct---------------
+MAX_SEQ_LEN EQU 32
+;------------track-----------------
 MAX_MOUSE_TRACK_LENGTH EQU 1024
 MAX_DIRECTIONS_PER_DWORD EQU 16
+;------------file------------------
+MAX_BUF_SIZE EQU 8192
+SETTINGS_FILE EQU 'settings.ini',0
+;----------------------------------
 ;==================================
 
 ;=========resource symbol==========

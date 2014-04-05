@@ -65,8 +65,8 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 			mov edi, OFFSET trackPoint
 			mov al, 0
 			mov isLButtonDown, al
-			invoke TestProc
-			invoke AddNewAction, ADDR trainSeq, trainLength
+			;invoke TestProc
+			;invoke AddNewAction, ADDR trainSeq, trainLength
 			invoke RecognizeTrack			; recognize the gesture
 			invoke InitializeTrack			; clean the length
 			invoke	InvalidateRect,hWnd,NULL,1
@@ -102,6 +102,8 @@ _ProcWinMain	endp
 _WinMain	proc
 		local	@stWndClass:WNDCLASSEX
 		local	@stMsg:MSG
+
+		invoke ImportAcitons
 
 		invoke	GetModuleHandle,NULL
 		mov	hInstance,eax
@@ -143,6 +145,9 @@ _WinMain	proc
 			invoke	TranslateMessage,addr @stMsg
 			invoke	DispatchMessage,addr @stMsg
 		.endw
+
+		invoke ExportActions
+
 		ret
 
 _WinMain	endp
