@@ -129,7 +129,12 @@ RecognizeTrack PROC uses ecx edx esi edi ebx ; Judge the length before invoke
 	
 	mov lastDirection, -1
 
+	.if trainLength == 0
+		ret 
+	.endif 
+	
 	mov ecx, trackLength 		; get the number of points N
+	
 	dec ecx								; ecx = N - 1
 
 	mov esi, OFFSET trackPoint			; point to the first array of trackPoint

@@ -25,6 +25,7 @@ szFileName1 BYTE 'settings.ini',0
 szSpace BYTE ' ', 0
 szCrlf BYTE 13,10, 0
 
+szTest BYTE '哈哈',0
 .code 
 
 OutputDword2File PROC,  
@@ -80,6 +81,7 @@ ImportAcitons PROC
 	LOCAL path[1024]:DWORD, pathIndex: DWORD
 
 	pushad 
+	invoke MessageBox, 0, addr szTest, addr szTest,0
 	;---------------- open settings.ini ------------------------------
 	INVOKE	CreateFile,addr szFileName,GENERIC_READ,FILE_SHARE_READ,0,\
 			OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0
