@@ -8,12 +8,14 @@ include		user32.inc
 include		kernel32.inc
 include		masm32.inc
 include		shell32.inc ; ShellExecute
+include		Comdlg32.inc
 
 includelib	gdi32.lib
 includelib	user32.lib
 includelib	kernel32.lib
 includelib	masm32.lib
 includelib	shell32.lib
+includelib	Comdlg32.lib
 includelib MSVCRT.LIB
 ;==================================
 
@@ -71,11 +73,15 @@ ProcessMenuEvents PROTO,
 ;---------------file---------------
 ImportAcitons PROTO
 ExportActions PROTO
- 
+
+;-------------Dialog---------------
+_ProcDlgMain PROTO,
+	hWnd: DWORD,
+	wMsg: DWORD,
+	wParam: DWORD,
+	lParam: DWORD
+
 ;----------------------------------
-
-
-
 ;==================================
 
 ;============variable==============
@@ -118,6 +124,15 @@ IDR_MainMenu		equ		101
 ID_MenuExit			equ		40001
 ID_MenuEnable		equ		40002
 ID_MenuEdit			equ		40003
+;--------dialog resources----------
+IDD_EditDialog		equ		102
+IDC_GestureList		equ		1001
+IDC_GestureHint		equ		1004
+IDC_GesturePath		equ		1008
+IDC_ChooseFile		equ		1009
+IDC_ChooseDirectory	equ		1010
+IDC_EditGesture		equ		1011
+
 
 ;---------window attribute-----------
 WINDOW_WIDTH	equ 600
