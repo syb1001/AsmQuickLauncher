@@ -71,9 +71,7 @@ ProcessMenuEvents PROTO,
 ;---------------file---------------
 ImportAcitons PROTO
 ExportActions PROTO
-ConvertDword2Str PROTO,
-	num: DWORD,
-	s: PTR BYTE 
+ 
 ;----------------------------------
 
 
@@ -109,7 +107,7 @@ MAX_SEQ_LEN EQU 32
 MAX_MOUSE_TRACK_LENGTH EQU 1024
 MAX_DIRECTIONS_PER_DWORD EQU 16
 ;------------file------------------
-MAX_BUF_SIZE EQU 8192
+MAX_BUF_SIZE EQU 1024
 SETTINGS_FILE EQU 'settings.ini',0
 ;----------------------------------
 ;==================================
