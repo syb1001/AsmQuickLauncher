@@ -13,13 +13,19 @@ seqLength DWORD 0					; number of directions
 ;--------------------------------------------------------------------------
 train DWORD 0
 ;--------------Action-------------------------------------------------------
-actionMap ACTION 32 DUP(<>)
+actionMap ACTION MAX_MAP_SIZE DUP(<>)
 actionLen DWORD 0
 ;--------------------------------------------------------------------------
 
 ;--------------train----------------
 trainSeq DWORD 1024 DUP(0)
 trainLength DWORD 0
+;--------------------------------------------------------------------------
+
+;------------- match ---------------
+prefixMatchArray DWORD MAX_MAP_SIZE DUP(0)
+bestMatch SDWORD 0
+;--------------------------------------------------------------------------
 
 ;----------DEBUG-------
 tmpStr BYTE 1024 DUP(0)
@@ -129,7 +135,12 @@ RecognizeTrack PROC uses ecx edx esi edi ebx ; Judge the length before invoke
 	
 	mov lastDirection, -1
 
+	.if trackLength == 0
+		ret 
+	.endif 
+	
 	mov ecx, trackLength 		; get the number of points N
+	
 	dec ecx								; ecx = N - 1
 
 	mov esi, OFFSET trackPoint			; point to the first array of trackPoint
@@ -187,8 +198,19 @@ L1:
 		add edi, TYPE DWORD
 		inc edx 
 
-		; to insert a trigger here 
+		comment *
+		mov eax, trackLength
+		inc eax 
+		mov trackLength, eax 
+		*
 
+		inc trackLength
+
+		; to insert a trigger here 
+		pushad 
+		invoke Match, eax 
+		mov SDWORD PTR eax, bestMatch
+		popad 
 	.ENDIF
 
 	loop L1
@@ -200,17 +222,21 @@ L1:
 	inc edx 
 	*
 
-	mov seqLength, edx 	; update the length of trackSeq
-
-	; to Match
-
 	ret
 
 RecognizeTrack ENDP
 
-Match PROC uses ebx edx ecx edi esi  
-; Match a suitable gesture
+
+Match PROC uses ebx edx ecx edi esi, 
+	dir: DWORD
+	local counter: DWORD, smallestLenDif: DWORD
+
+; if prefixMatchArray[k] = 0 
+; then compare the len-th bit of actionMap[k].seq 
+; or ignore 
+; bestMatch stores the one whose length is closest to the len
 	
+	comment *
 	mov ecx, actionLen 			; use length of actionMap as the loop counter 
 	mov esi, OFFSET actionMap	; point the the first array of actionMap 
 	mov eax, 0					; counter 
@@ -253,14 +279,75 @@ Hit:
 	
 rtn_Match:	
 	ret 
+	*
+
+	mov SDWORD PTR eax, -1
+	mov bestMatch, eax 				; Initialize bestMatch with -1 means no match 
+	mov smallestLenDif, 1024		; Initialize smallestLenDif with oo
+
+	mov ecx, actionLen 			; use length of actionMap as the loop counter 
+
+	mov esi, OFFSET actionMap	; point the the first array of actionMap 
+	mov edi, OFFSET prefixMatchArray ; point the the first array of prefixMatchArray
+
+	mov counter, 0					; counter 
+
+
+	.while ecx > 0
+		
+		mov eax, [edi]
+
+		.if eax == 0			 ; still match 
+
+			mov eax, trackLength	; use the length of each ACTION as the loop counter 
+			mov ebx, (ACTION PTR [esi]).len 
+			.if eax <= ebx			; if trackLength < actionMap[counter].len 
+
+				lea ebx, (ACTION PTR [esi]).seq 	; point to the first array of seq of each ACTION
+			 	lea edx, [ebx + eax * TYPE DWORD] 	; point to its len-th bit 
+
+			 	mov eax, dir
+			 	.if [edx] == eax 	; compare dir and seq[len]
+			 		
+			 		mov eax, (ACTION PTR [esi]).len
+			 		mov ebx, trackLength
+			 		sub eax, ebx 			; length difference between trackLength and actionMap[counter]
+
+			 		.if eax < smallestLenDif
+			 			mov ebx, counter
+			 			mov bestMatch, ebx
+			 			mov smallestLenDif, eax 
+
+			 		.endif 
+
+			 	.else 
+			 		mov eax, 1
+			 		mov [edi], eax 		; not match: set prefixMatchArray[counter] = 1
+			 	.endif 
+			
+			.else
+				mov eax, 1
+			 	mov [edi], eax 		; not match: set prefixMatchArray[counter] = 1
+			.endif
+
+		.endif 
+
+
+		add esi, TYPE ACTION 	; point to the next ACTION of actionMap
+		add edi, TYPE DWORD  	; point to the next element of prefixMatchArray
+		dec ecx 
+		inc counter 				; counter +1 
+	.endw 	
+
 Match ENDP
 
 
 AddNewAction PROC uses ebx esi edi edx,
 	seq: PTR DWORD,
 	len: DWORD,
-	path: PTR BYTE
-LOCAL seqStartPos:DWORD, pathStartPos:DWORD
+	path: PTR BYTE,
+	tip: PTR BYTE
+LOCAL seqStartPos:DWORD, pathStartPos:DWORD, tipStartPos:DWORD
 
 ;--------set sequence-----------------------------------
 	mov ebx, OFFSET actionMap 	; point to the first element of actionMap
@@ -292,9 +379,16 @@ LOCAL seqStartPos:DWORD, pathStartPos:DWORD
 	INVOKE lstrcpy, pathStartPos, path
 ;-------------end-----------------------------------
 	
+;-------- set tip ----------------
+	mov ebx, pathStartPos
+	mov eax,  MAX_PATH_LEN
+	lea esi, [ebx + eax * TYPE BYTE]		; esi points to the start position of tip
+	mov tipStartPos, esi 
+	INVOKE lstrcpy, tipStartPos, tip
+;-------------end-----------------------------------
 	inc actionLen
 
-	INVOKE MessageBoxDwordArr, seqStartPos, len, pathStartPos
+	INVOKE MessageBoxDwordArr, seqStartPos, len, tipStartPos
 
 	ret 	
 AddNewAction ENDP

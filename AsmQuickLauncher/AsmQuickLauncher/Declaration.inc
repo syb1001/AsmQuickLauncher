@@ -24,6 +24,7 @@ ACTION STRUCT
 	len dd 0
 	seq dd 32 DUP(0)
 	path db 1024 DUP(0)
+	tip db 1024 DUP(0)
 ACTION ENDS 
 ;==================================
 
@@ -43,13 +44,15 @@ RecognizeTrack PROTO
 
 InitializeTrack PROTO
 
-Match PROTO
+Match PROTO,
+	dir: DWORD
 
 ;-------------Action---------------
 AddNewAction PROTO,
 	seq: PTR DWORD,
 	len: DWORD,
-	path: PTR BYTE
+	path: PTR BYTE,
+	tip: PTR BYTE
 
 ;-------------DEBUG----------------
 MessageBoxDwordArr PROTO,
@@ -109,6 +112,8 @@ externdef	hMenu:		DWORD ; handler of main menu
 ;=============macro================
 ;------------struct---------------
 MAX_SEQ_LEN EQU 32
+MAX_PATH_LEN EQU 1024
+MAX_MAP_SIZE EQU 64
 ;------------track-----------------
 MAX_MOUSE_TRACK_LENGTH EQU 1024
 MAX_DIRECTIONS_PER_DWORD EQU 16
