@@ -25,7 +25,6 @@ szFileName1 BYTE 'settings.ini',0
 szSpace BYTE ' ', 0
 szCrlf BYTE 13,10, 0
 
-szTest BYTE '哈哈',0
 .code 
 
 OutputDword2File PROC,  
@@ -79,9 +78,9 @@ ImportAcitons PROC
 	LOCAL @szReadBuffer: byte
 	LOCAL curStep: DWORD, seqLen: DWORD, seq[MAX_SEQ_LEN]:DWORD,seqIndex: DWORD
 	LOCAL path[1024]:DWORD, pathIndex: DWORD
+	LOCAL tip[1024]:DWORD, tipIndex: DWORD
 
 	pushad 
-	invoke MessageBox, 0, addr szTest, addr szTest,0
 	;---------------- open settings.ini ------------------------------
 	INVOKE	CreateFile,addr szFileName,GENERIC_READ,FILE_SHARE_READ,0,\
 			OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0
@@ -102,6 +101,7 @@ ImportAcitons PROC
 	mov curStep, 0
 	mov seqIndex, 0
 	mov pathIndex, 0
+	mov tipIndex, 0
 
 	.while	TRUE
 		lea	esi, @szReadBuffer
@@ -117,14 +117,20 @@ ImportAcitons PROC
 				mov edx, pathIndex
 				lea edi, [ebx + edx * TYPE BYTE]
 				mov BYTE PTR [edi], 0 				; path should ends up with 0
-			
-				INVOKE AddNewAction, addr seq, seqLen, addr path 	; add new action 
+
+				lea ebx, tip
+				mov edx, tipIndex
+				lea edi, [ebx + edx * TYPE BYTE]
+				mov BYTE PTR [edi], 0				; tip should ends up with 0
+
+				INVOKE AddNewAction, addr seq, seqLen, addr path, addr tip 	; add new action 
 			;-------------------------------------	
 			;--------clear all for next action-------		
 				mov seqLen, 0 		
 				mov curStep, 0
 				mov seqIndex, 0
 				mov pathIndex, 0
+				mov tipIndex, 0
 			;----------------------------------------
 			.endif 
 
@@ -160,7 +166,7 @@ ImportAcitons PROC
 				mov seqIndex, eax
 			;--------------------------
 			;------get path------------ 
-			.else 								; get path 
+			.elseif curStep == 2 								; get path 
 				lea esi, @szReadBuffer			; esi points to src
 
 				lea ebx, path
@@ -169,10 +175,19 @@ ImportAcitons PROC
 
 				movsb 							; load char from src to dest
 
-				mov eax, pathIndex			; pathIndex ++ 
-				inc eax
-				mov pathIndex, eax
-								
+				inc pathIndex 				; pathIndex ++ 
+			;--------------------------
+			;------get tip------------ 
+			.else 
+				lea esi, @szReadBuffer			; esi points to src
+
+				lea ebx, tip
+				mov edx, tipIndex
+				lea edi, [ebx + edx * TYPE BYTE]	; edi poitnts to dest
+
+				movsb 							; load char from src to dest
+
+				inc tipIndex
 			.endif
 			;--------------------------
 		.endif
@@ -187,7 +202,12 @@ ImportAcitons PROC
 		lea edi, [ebx + edx * TYPE BYTE]
 		mov BYTE PTR [edi], 0 				; path should ends up with 0
 	
-		INVOKE AddNewAction, addr seq, seqLen, addr path 	; add new action 
+		lea ebx, tip
+		mov edx, tipIndex
+		lea edi, [ebx + edx * TYPE BYTE]
+		mov BYTE PTR [edi], 0				; tip should ends up with 0
+
+		INVOKE AddNewAction, addr seq, seqLen, addr path, addr tip 	; add new action 
 
 	.endif 
 
@@ -236,6 +256,8 @@ ExportActions PROC
 		
 		invoke OutputSpace2File
 		invoke OutputByte2File, ADDR (ACTION PTR [edi]).path 	; output action path 
+		invoke OutputSpace2File
+		invoke OutputByte2File, ADDR (ACTION PTR [edi]).tip 	; output action tip 
 		invoke OutputCrlf2File
 		
 		add edi, TYPE ACTION 
