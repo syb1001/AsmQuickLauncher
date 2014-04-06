@@ -102,11 +102,15 @@ externdef train: DWORD
 externdef actionMap: PTR ACTION
 externdef actionLen: DWORD 
 
+;---------- recognize ------------
+externdef bestMatch: SDWORD 
+
 ;-------------handler--------------
 externdef	hInstance:	DWORD
 externdef	hWinMain:	DWORD
 externdef	hMenu:		DWORD ; handler of main menu
 ;----------------------------------
+
 ;==================================
 
 ;=============macro================

@@ -141,79 +141,68 @@ RecognizeTrack PROC uses ecx edx esi edi ebx ; Judge the length before invoke
 	
 	mov ecx, trackLength 		; get the number of points N
 	
-	dec ecx								; ecx = N - 1
-
 	mov esi, OFFSET trackPoint			; point to the first array of trackPoint
 	
 	mov edi, OFFSET trackSeq				; point the the first array of trackSeq 
-
-	mov edx, 0	  						; counter of trackSeq array 
 
 	mov ebx, 0 							; counter of curSeq's digit bit, must be less than MAX_DIRECTIONS_PER_DWORD
 
 	mov curSeq, 0
 ;---------------------------------------------------------------------------------------------------
-L1:	
+	.while ecx > 0
 	
-	INVOKE GetDirection, (POINT PTR [esi]).x, (POINT PTR [esi + TYPE POINT]).x, (POINT PTR [esi]).y,
-	(POINT PTR [esi + TYPE POINT]).y
+		INVOKE GetDirection, (POINT PTR [esi]).x, (POINT PTR [esi + TYPE POINT]).x, (POINT PTR [esi]).y,
+		(POINT PTR [esi + TYPE POINT]).y
 
-	add esi, TYPE POINT 							 ; point to the next trackPoint
-	
-	; Wait til a new direction occurs 
-	.IF lastDirection == -1 || eax != lastDirection
+		add esi, TYPE POINT 							 ; point to the next trackPoint
 		
-		mov lastDirection, eax		; record the new direction 
+		; Wait til a new direction occurs 
+		.IF lastDirection == -1 || eax != lastDirection
+			
+			mov lastDirection, eax		; record the new direction 
 
-		comment *
-		push edx 
-		mov eax, curSeq 			
-		mov edx, curSeq
-		shl eax, 3
-		shl edx, 1
-		add eax, edx 
-		add eax, lastDirection
-		mov curSeq, eax 
-		pop edx 
+			comment *
+			push edx 
+			mov eax, curSeq 			
+			mov edx, curSeq
+			shl eax, 3
+			shl edx, 1
+			add eax, edx 
+			add eax, lastDirection
+			mov curSeq, eax 
+			pop edx 
 
-		mov eax, curSeq 			; curSeq = curSeq << 2 + current direction
-		shl eax, 2
-		or eax, lastDirection
-		mov curSeq, eax 
+			mov eax, curSeq 			; curSeq = curSeq << 2 + current direction
+			shl eax, 2
+			or eax, lastDirection
+			mov curSeq, eax 
 
-		inc ebx   				
+			inc ebx   				
 
-		.IF ebx == MAX_DIRECTIONS_PER_DWORD
-			mov eax, curSeq
+			.IF ebx == MAX_DIRECTIONS_PER_DWORD
+				mov eax, curSeq
+				mov [edi], eax 		; store curSeq in trackSeq
+				add edi, TYPE DWORD
+				inc edx 
+				mov curSeq, 0 		; clear the sequence
+				mov ebx, 0 			; clear the counter 
+
+			.ENDIF	
+			*
+
 			mov [edi], eax 		; store curSeq in trackSeq
 			add edi, TYPE DWORD
-			inc edx 
-			mov curSeq, 0 		; clear the sequence
-			mov ebx, 0 			; clear the counter 
 
-		.ENDIF	
-		*
+			inc seqLength		; seqLength ++
 
-		mov [edi], eax 		; store curSeq in trackSeq
-		add edi, TYPE DWORD
-		inc edx 
-
-		comment *
-		mov eax, trackLength
-		inc eax 
-		mov trackLength, eax 
-		*
-
-		inc trackLength
-
-		; to insert a trigger here 
-		pushad 
-		invoke Match, eax 
-		mov SDWORD PTR eax, bestMatch
-		popad 
-	.ENDIF
-
-	loop L1
+			; to insert a trigger here 
+			pushad 
+			invoke Match, eax 
+			mov SDWORD PTR eax, bestMatch
+			popad 
+		.ENDIF
+		dec ecx 
+	.endw 
 
 	comment *
 	; add the last sequence 
@@ -299,9 +288,9 @@ rtn_Match:
 
 		.if eax == 0			 ; still match 
 
-			mov eax, trackLength	; use the length of each ACTION as the loop counter 
+			mov eax, seqLength	; use the length of each ACTION as the loop counter 
 			mov ebx, (ACTION PTR [esi]).len 
-			.if eax <= ebx			; if trackLength < actionMap[counter].len 
+			.if eax <= ebx			; if seqLength < actionMap[counter].len 
 
 				lea ebx, (ACTION PTR [esi]).seq 	; point to the first array of seq of each ACTION
 			 	lea edx, [ebx + eax * TYPE DWORD] 	; point to its len-th bit 
@@ -338,6 +327,8 @@ rtn_Match:
 		dec ecx 
 		inc counter 				; counter +1 
 	.endw 	
+
+	ret
 
 Match ENDP
 

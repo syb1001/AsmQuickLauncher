@@ -65,7 +65,7 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 			mov edi, OFFSET trackPoint
 			mov al, 0
 			mov isLButtonDown, al
-			
+		   mov eax, bestMatch
 			invoke InitializeTrack			; clean the length
 			invoke	InvalidateRect,hWnd,NULL,1
 
@@ -87,8 +87,6 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 					mov al, 0
 					mov isLButtonDown, al
 				.endif 
-
-				
 
 			.endif
 			invoke	InvalidateRect,hWnd,NULL,0
