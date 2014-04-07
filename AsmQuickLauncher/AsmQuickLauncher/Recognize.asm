@@ -204,7 +204,7 @@ L1:
 		mov trackLength, eax 
 		*
 
-		inc trackLength
+		;inc trackLength
 
 		; to insert a trigger here 
 		pushad 
@@ -338,6 +338,7 @@ rtn_Match:
 		dec ecx 
 		inc counter 				; counter +1 
 	.endw 	
+	ret
 
 Match ENDP
 

@@ -58,8 +58,13 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 			invoke	ProcessMenuEvents, eax
 ;********************************************************************
 		.elseif eax == WM_LBUTTONDOWN
-			mov al, 1
-			mov isLButtonDown, al
+			mov edi, OFFSET trackPoint
+			movzx esi, WORD PTR lParam
+			mov (POINT PTR [edi]).x, esi
+			movzx esi, WORD PTR [lParam + 2]
+			mov (POINT PTR [edi]).y, esi
+			mov trackLength, 1
+			mov isLButtonDown, 1
 			
 		.elseif eax == WM_LBUTTONUP
 			mov edi, OFFSET trackPoint
