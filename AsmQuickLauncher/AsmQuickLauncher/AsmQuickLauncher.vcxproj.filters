@@ -27,10 +27,19 @@
     <MASM Include="UI.asm">
       <Filter>源文件</Filter>
     </MASM>
+    <MASM Include="FileOperation.asm">
+      <Filter>源文件</Filter>
+    </MASM>
+    <MASM Include="Dialog.asm">
+      <Filter>源文件</Filter>
+    </MASM>
   </ItemGroup>
   <ItemGroup>
     <None Include="Declaration.inc">
       <Filter>头文件</Filter>
+    </None>
+    <None Include="settings.ini">
+      <Filter>资源文件</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

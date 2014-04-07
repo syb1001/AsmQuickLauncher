@@ -60,14 +60,12 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 		.elseif eax == WM_LBUTTONDOWN
 			mov al, 1
 			mov isLButtonDown, al
-
+			
 		.elseif eax == WM_LBUTTONUP
 			mov edi, OFFSET trackPoint
 			mov al, 0
 			mov isLButtonDown, al
-			invoke TestProc
-			invoke AddNewAction, ADDR trainSeq, trainLength
-			invoke RecognizeTrack			; recognize the gesture
+			
 			invoke InitializeTrack			; clean the length
 			invoke	InvalidateRect,hWnd,NULL,1
 
@@ -82,10 +80,15 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 				movzx esi, WORD PTR [lParam + 2]
 				mov (POINT PTR [edi]).y, esi
 				inc trackLength
+
+				invoke RecognizeTrack			; recognize the gesture
+
 				.if trackLength == 1024
 					mov al, 0
 					mov isLButtonDown, al
 				.endif 
+
+				
 
 			.endif
 			invoke	InvalidateRect,hWnd,NULL,0
@@ -102,6 +105,8 @@ _ProcWinMain	endp
 _WinMain	proc
 		local	@stWndClass:WNDCLASSEX
 		local	@stMsg:MSG
+
+		invoke ImportAcitons
 
 		invoke	GetModuleHandle,NULL
 		mov	hInstance,eax
@@ -143,6 +148,9 @@ _WinMain	proc
 			invoke	TranslateMessage,addr @stMsg
 			invoke	DispatchMessage,addr @stMsg
 		.endw
+
+		invoke ExportActions
+
 		ret
 
 _WinMain	endp

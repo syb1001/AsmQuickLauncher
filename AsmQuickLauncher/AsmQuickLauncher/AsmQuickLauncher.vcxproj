@@ -11,6 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <MASM Include="FileOperation.asm" />
+    <MASM Include="Dialog.asm" />
     <MASM Include="Graphics.asm" />
     <MASM Include="Main.asm" />
     <MASM Include="Recognize.asm" />
@@ -18,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Declaration.inc" />
+    <None Include="settings.ini" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
