@@ -65,8 +65,11 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 			mov edi, OFFSET trackPoint
 			mov al, 0
 			mov isLButtonDown, al
-		   mov eax, bestMatch
-			invoke InitializeTrack			; clean the length
+
+		   	; @wxc call shellExecute here		   	
+
+			invoke InitializeTrack			;  clear all for new track 
+			
 			invoke	InvalidateRect,hWnd,NULL,1
 
 		.elseif eax == WM_MOUSEMOVE

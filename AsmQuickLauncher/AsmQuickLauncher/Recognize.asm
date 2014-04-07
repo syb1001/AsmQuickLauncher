@@ -24,7 +24,8 @@ trainLength DWORD 0
 
 ;------------- match ---------------
 prefixMatchArray DWORD MAX_MAP_SIZE DUP(0)
-bestMatch SDWORD 0
+bestMatch SDWORD -1
+lastDirection SDWORD -1
 ;--------------------------------------------------------------------------
 
 ;----------DEBUG-------
@@ -129,87 +130,40 @@ LOCAL delX : SDWORD, delY : SDWORD
 GetDirection ENDP
 
 RecognizeTrack PROC uses ecx edx esi edi ebx ; Judge the length before invoke
-				LOCAL lastDirection : SDWORD
 				LOCAL curSeq: DWORD 		 ; store current trasck sequence as DWORD format
 ; Get the array of directions 
 	
-	mov lastDirection, -1
-
-	.if trackLength == 0
+	.if trackLength <= 1
 		ret 
 	.endif 
-	
-	mov ecx, trackLength 		; get the number of points N
-	
-	mov esi, OFFSET trackPoint			; point to the first array of trackPoint
-	
-	mov edi, OFFSET trackSeq				; point the the first array of trackSeq 
+		
+	mov ebx, OFFSET trackPoint			; point to the first array of trackPoint
+	mov eax, trackLength
+	sub eax, 2
+	lea esi, [ebx + eax * TYPE POINT]
 
-	mov ebx, 0 							; counter of curSeq's digit bit, must be less than MAX_DIRECTIONS_PER_DWORD
+	mov ebx, OFFSET trackSeq				; point the the first array of trackSeq 
+	mov eax, seqLength
+	lea edi, [ebx + eax * TYPE DWORD]
 
-	mov curSeq, 0
 ;---------------------------------------------------------------------------------------------------
-	.while ecx > 0
 	
 		INVOKE GetDirection, (POINT PTR [esi]).x, (POINT PTR [esi + TYPE POINT]).x, (POINT PTR [esi]).y,
 		(POINT PTR [esi + TYPE POINT]).y
-
-		add esi, TYPE POINT 							 ; point to the next trackPoint
 		
 		; Wait til a new direction occurs 
 		.IF lastDirection == -1 || eax != lastDirection
 			
 			mov lastDirection, eax		; record the new direction 
 
-			comment *
-			push edx 
-			mov eax, curSeq 			
-			mov edx, curSeq
-			shl eax, 3
-			shl edx, 1
-			add eax, edx 
-			add eax, lastDirection
-			mov curSeq, eax 
-			pop edx 
-
-			mov eax, curSeq 			; curSeq = curSeq << 2 + current direction
-			shl eax, 2
-			or eax, lastDirection
-			mov curSeq, eax 
-
-			inc ebx   				
-
-			.IF ebx == MAX_DIRECTIONS_PER_DWORD
-				mov eax, curSeq
-				mov [edi], eax 		; store curSeq in trackSeq
-				add edi, TYPE DWORD
-				inc edx 
-				mov curSeq, 0 		; clear the sequence
-				mov ebx, 0 			; clear the counter 
-
-			.ENDIF	
-			*
-
 			mov [edi], eax 		; store curSeq in trackSeq
-			add edi, TYPE DWORD
-
+			
 			inc seqLength		; seqLength ++
 
 			; to insert a trigger here 
-			pushad 
 			invoke Match, eax 
-			mov SDWORD PTR eax, bestMatch
-			popad 
+			 
 		.ENDIF
-		dec ecx 
-	.endw 
-
-	comment *
-	; add the last sequence 
-	mov eax, curSeq
-	mov [edi], eax 		; store curSeq in trackSeq
-	inc edx 
-	*
 
 	ret
 
@@ -292,6 +246,7 @@ rtn_Match:
 			mov ebx, (ACTION PTR [esi]).len 
 			.if eax <= ebx			; if seqLength < actionMap[counter].len 
 
+				dec eax 
 				lea ebx, (ACTION PTR [esi]).seq 	; point to the first array of seq of each ACTION
 			 	lea edx, [ebx + eax * TYPE DWORD] 	; point to its len-th bit 
 
@@ -299,7 +254,7 @@ rtn_Match:
 			 	.if [edx] == eax 	; compare dir and seq[len]
 			 		
 			 		mov eax, (ACTION PTR [esi]).len
-			 		mov ebx, trackLength
+			 		mov ebx, seqLength
 			 		sub eax, ebx 			; length difference between trackLength and actionMap[counter]
 
 			 		.if eax < smallestLenDif
@@ -390,6 +345,9 @@ MessageBoxDwordArr PROC uses eax ebx ecx edx esi edi,
 	path: PTR BYTE
 
 	mov ecx, len 
+	.if ecx < 0
+		ret 
+	.endif 
 	mov ebx, pArr
 	mov esi, OFFSET tmpStr
 @@:
@@ -406,9 +364,24 @@ MessageBoxDwordArr PROC uses eax ebx ecx edx esi edi,
 MessageBoxDwordArr ENDP
 
 InitializeTrack PROC
+	
+	invoke MessageBoxDwordArr, addr trackSeq, seqLength, addr tmpStr
 
 	mov trackLength, 0
 	mov seqLength, 0
+
+	mov ecx, MAX_MAP_SIZE
+	mov esi, offset prefixMatchArray
+	.while ecx > 1
+		xor eax, eax 
+		mov [esi], eax
+		dec ecx
+		add esi, type DWORD
+	.endw 
+
+	mov SDWORD PTR eax, -1
+	mov bestMatch, eax
+	mov lastDirection, eax 
 
 	ret
 	
