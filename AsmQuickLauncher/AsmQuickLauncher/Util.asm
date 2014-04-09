@@ -12,6 +12,9 @@ downArrow 			db 	  '¡ý', 0
 rightArrow 			db 	  '¡ú', 0 
 leftArrow 			db 	  '¡û', 0
 
+.const
+szOpen			db		'open', 0
+
 .code
 GetArrowSeq PROC uses eax ecx esi edi,
 	p: PTR DWORD,
@@ -48,4 +51,28 @@ GetArrowSeq PROC uses eax ecx esi edi,
 	ret 
 GetArrowSeq EndP
 
+ExecuteMatch PROC uses eax ecx esi edi,
+	index: DWORD
+
+	.if		index == -1
+			ret
+	.endif
+
+	mov		eax, index
+	lea		ebx, actionMap
+	mov		edx, TYPE ACTION
+	mul		edx
+	add		ebx, eax
+
+	mov		eax, (ACTION PTR [ebx]).pathType
+	.if		eax <= 3
+			lea		esi, (ACTION PTR [ebx]).path
+			invoke	ShellExecute, NULL, addr szOpen, esi, NULL, NULL, SW_SHOW
+	.else
+			; convert the saved path to a vitual path struct here
+			; then use ShellExecuteEx to open that
+	.endif
+
+	ret
+ExecuteMatch ENDP
 END

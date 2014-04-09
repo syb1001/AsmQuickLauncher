@@ -11,7 +11,7 @@ arrowString	db		128 DUP(0)
 
 .const
 szError		db		'错误', 0
-szWarning	db		'手势中长度不可以为0', 0
+szWarning	db		'手势序列长度不能为0！', 0
 
 .code
 _ProcDirBoxMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
