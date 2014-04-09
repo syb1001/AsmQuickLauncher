@@ -8,7 +8,6 @@ include Declaration.inc
 szOpen			db		'open', 0
 szFileFilter	db		'All Files(*.*)', 0 , '*.*', 0, 0
 szTextTest		db		'╡Бйтр╩об', 0
-upArrow			db		226,134,145, 0
 
 .data
 szCurrentPath		db		MAX_PATH DUP (?)
