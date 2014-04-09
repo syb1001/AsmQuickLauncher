@@ -19,6 +19,7 @@
     <MASM Include="Main.asm" />
     <MASM Include="Recognize.asm" />
     <MASM Include="UI.asm" />
+    <MASM Include="Util.asm" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Declaration.inc" />

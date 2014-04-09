@@ -131,6 +131,11 @@ externdef bestMatch: SDWORD
 
 ;---------- arrow ----------------
 externdef arrowSeq: BYTE
+externdef arrowString: BYTE
+externdef upArrow: BYTE
+externdef downArrow: BYTE
+externdef leftArrow: BYTE
+externdef rightArrow: BYTE
 
 ;-------------handler--------------
 externdef	hInstance:	DWORD
