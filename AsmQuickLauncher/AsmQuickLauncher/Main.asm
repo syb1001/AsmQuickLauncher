@@ -25,6 +25,8 @@ hInstance		dd		?
 hWinMain		dd		?
 isLButtonDown	BYTE	0
 isRButtonDown	BYTE	0
+WINDOW_WIDTH	DWORD	0
+WINDOW_HEIGHT	DWORD	0
 		
 .code
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -42,6 +44,12 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 		.if	eax ==	WM_PAINT
 			invoke	BeginPaint,hWnd,addr @stPs
 			mov	@hDc,eax
+			mov	ecx,@stPs.rcPaint.right
+			sub	ecx,@stPs.rcPaint.left
+			mov WINDOW_WIDTH, ecx
+			mov	ecx,@stPs.rcPaint.bottom
+			sub	ecx,@stPs.rcPaint.top
+			mov WINDOW_HEIGHT, ecx
 			invoke CreateBitMap, @hDc
 			invoke	EndPaint,hWnd,addr @stPs
 ;********************************************************************
@@ -210,6 +218,8 @@ _WinMain	proc
 ;********************************************************************
 ; 建立并显示窗口
 ;********************************************************************
+		mov WINDOW_WIDTH, 1200
+		mov WINDOW_HEIGHT, 800
 		invoke	CreateWindowEx,WS_EX_CLIENTEDGE,offset szClassName,offset szCaptionMain,\
 			WS_OVERLAPPEDWINDOW,\
 			100,100,WINDOW_WIDTH,WINDOW_HEIGHT,\

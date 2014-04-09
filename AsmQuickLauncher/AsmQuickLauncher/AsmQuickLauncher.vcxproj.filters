@@ -65,5 +65,17 @@
     <Image Include="Up.bmp">
       <Filter>资源文件</Filter>
     </Image>
+    <Image Include="BottomDown.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="BottomLeft.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="BottomRight.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="BottomUp.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
   </ItemGroup>
 </Project>

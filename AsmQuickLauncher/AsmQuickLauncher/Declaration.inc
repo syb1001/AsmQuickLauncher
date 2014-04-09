@@ -113,6 +113,10 @@ externdef bestMatch: SDWORD
 externdef	hInstance:	DWORD
 externdef	hWinMain:	DWORD
 externdef	hMenu:		DWORD ; handler of main menu
+
+;-------------windows-------------
+externdef	WINDOW_WIDTH:	DWORD
+externdef	WINDOW_HEIGHT:	DWORD
 ;----------------------------------
 
 ;==================================
@@ -150,12 +154,19 @@ IDB_LEFT			equ		201
 IDB_RIGHT			equ		202
 IDB_UP				equ		203
 IDB_DOWN			equ		204
+IDB_BOTTOMLEFT		equ		205
+IDB_BOTTOMRIGHT		equ		206
+IDB_BOTTOMUP		equ		207
+IDB_BOTTOMDOWN		equ		208
 
+;---------bmp attribute-------------
+BMP_BOTTOM_SIZE			equ		25
+BMP_LEFTUPCORNER_SIZE	equ		50
 
 
 ;---------window attribute-----------
-WINDOW_WIDTH	equ 600
-WINDOW_HEIGHT	equ 400
+;WINDOW_WIDTH	equ 600
+;WINDOW_HEIGHT	equ 400
 ;----------------------------------
 ;==================================
 

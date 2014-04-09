@@ -29,6 +29,10 @@
     <ResourceCompile Include="AsmQuickLauncher.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="BottomDown.bmp" />
+    <Image Include="BottomLeft.bmp" />
+    <Image Include="BottomRight.bmp" />
+    <Image Include="BottomUp.bmp" />
     <Image Include="Down.bmp" />
     <Image Include="Left.bmp" />
     <Image Include="Right.bmp" />
