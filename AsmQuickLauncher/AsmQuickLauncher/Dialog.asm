@@ -14,11 +14,6 @@ upArrow			db		226,134,145, 0
 szCurrentPath		db		MAX_PATH DUP (?)
 szCurrentTip		db		1024 DUP (?)
 szCurrentType		db		?
-;-----------arrow------------------
-upArrow 			db      24
-downArrow 			db 25
-rightArrow 			db 26
-leftArrow 			db 27
 
 actionAddress		dd		?
 
@@ -59,8 +54,6 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 	.elseif	eax == WM_COMMAND
 			mov		eax, wParam
 			.if		ax == IDOK
-				invoke MessageBox, 0, addr upArrow, addr upArrow,0
-
 					; press ok button
 					; update this item in the actionMap
 					invoke	SendDlgItemMessage, hWnd, IDC_GestureList, CB_GETCURSEL, 0, 0
@@ -131,6 +124,10 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 			.elseif	ax == IDC_EnterPath
 				; another modal dialog
 				invoke	DialogBoxParam, hInstance, IDD_InputBox, hWnd, offset _ProcInputBoxMain, NULL
+				.if	eax == 1
+					mov		ebx, actionAddress
+					invoke SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR [ebx]).path
+				.endif
 			.elseif	ax == IDC_GestureList
 				; process message of combo box here
 				shr		eax, 16

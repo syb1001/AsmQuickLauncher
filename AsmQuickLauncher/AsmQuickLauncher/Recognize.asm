@@ -358,11 +358,11 @@ LOCAL seqStartPos:DWORD, pathStartPos:DWORD, tipStartPos:DWORD
 ;-------------end-----------------------------------
 	inc actionLen
 	
-	INVOKE MessageBoxDwordArr, seqStartPos, len, tipStartPos
+	;INVOKE MessageBoxDwordArr, seqStartPos, len, tipStartPos
 	
-	invoke GetArrowSeq, addr seq, seqLength
+	;invoke GetArrowSeq, addr seq, seqLength
 
-	INVOKE MessageBox, 0, eax, eax, 0
+	;INVOKE MessageBox, 0, eax, eax, 0
 
 	ret 	
 AddNewAction ENDP

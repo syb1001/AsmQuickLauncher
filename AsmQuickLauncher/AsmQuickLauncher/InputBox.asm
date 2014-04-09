@@ -9,12 +9,15 @@ _ProcInputBoxMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 
 	mov		eax, wMsg
 	.if		eax == WM_INITDIALOG
-			invoke SetDlgItemText, hWnd, IDC_InputPath, addr (ACTION PTR actionAddress).path
+			mov		ebx, actionAddress
+			invoke	SetDlgItemText, hWnd, IDC_InputPath, addr (ACTION PTR [ebx]).path
 	.elseif	eax == WM_CLOSE
 			invoke	EndDialog, hWnd, 0
 	.elseif	eax == WM_COMMAND
 			mov		eax, wParam
 			.if		ax == IDOK
+					mov		ebx, actionAddress
+					invoke	GetDlgItemText, hWnd, IDC_InputPath, addr (ACTION PTR [ebx]).path, 1024
 					invoke	EndDialog, hWnd, 1
 			.elseif	ax == IDCANCEL
 					invoke	EndDialog, hWnd, 0
