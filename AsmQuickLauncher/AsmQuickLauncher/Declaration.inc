@@ -144,14 +144,14 @@ IDC_GestureHint		equ		1004
 IDC_GesturePath		equ		1008
 IDC_ChooseFile		equ		1009
 IDC_ChooseDirectory	equ		1010
+IDC_EnterPath		equ		1012
 IDC_EditGesture		equ		1011
-
+IDC_GestureSequence	equ		1013
+;------------bitmaps---------------
 IDB_LEFT			equ		201
 IDB_RIGHT			equ		202
 IDB_UP				equ		203
 IDB_DOWN			equ		204
-
-
 
 ;---------window attribute-----------
 WINDOW_WIDTH	equ 600
