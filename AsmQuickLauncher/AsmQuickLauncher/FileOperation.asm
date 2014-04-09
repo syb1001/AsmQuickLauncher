@@ -76,7 +76,9 @@ OutputCrlf2File ENDP
 ImportAcitons PROC
 	LOCAL @hFile, @dwBytesRead
 	LOCAL @szReadBuffer: byte
-	LOCAL curStep: DWORD, seqLen: DWORD, seq[MAX_SEQ_LEN]:DWORD,seqIndex: DWORD
+	LOCAL curStep: DWORD
+	LOCAL pathType: DWORD
+	LOCAL seqLen: DWORD, seq[MAX_SEQ_LEN]:DWORD,seqIndex: DWORD
 	LOCAL path[1024]:DWORD, pathIndex: DWORD
 	LOCAL tip[1024]:DWORD, tipIndex: DWORD
 
@@ -123,11 +125,13 @@ ImportAcitons PROC
 				lea edi, [ebx + edx * TYPE BYTE]
 				mov BYTE PTR [edi], 0				; tip should ends up with 0
 
-				INVOKE AddNewAction, addr seq, seqLen, addr path, addr tip 	; add new action 
+				INVOKE AddNewAction, addr seq, seqLen, addr path, addr tip, pathType	; add new action 
 			;-------------------------------------	
 			;--------clear all for next action-------		
-				mov seqLen, 0 		
+				 		
 				mov curStep, 0
+				mov pathType, 0
+				mov seqLen, 0
 				mov seqIndex, 0
 				mov pathIndex, 0
 				mov tipIndex, 0
@@ -143,8 +147,13 @@ ImportAcitons PROC
 
 		;----------- touch char -------------------------
 		.else
+			.if curStep == 0 			; get type 
+				movzx eax, @szReadBuffer
+				sub eax, '0'
+				mov pathType, eax 
+
 			;------get len---------
-			.if curStep == 0					
+			.elseif curStep == 1 			 ; get length 					
 				
 				movzx eax, @szReadBuffer
 				mov edx, seqLen
@@ -154,7 +163,7 @@ ImportAcitons PROC
 				mov seqLen, edx 
 			;------------------------
 			;------get seq-----------
-			.elseif curStep == 1				; get sequence
+			.elseif curStep == 2				; get sequence
 				
 				movzx eax, @szReadBuffer
 				sub eax, '0'
@@ -166,7 +175,7 @@ ImportAcitons PROC
 				mov seqIndex, eax
 			;--------------------------
 			;------get path------------ 
-			.elseif curStep == 2 								; get path 
+			.elseif curStep == 3 								; get path 
 				lea esi, @szReadBuffer			; esi points to src
 
 				lea ebx, path
@@ -207,7 +216,7 @@ ImportAcitons PROC
 		lea edi, [ebx + edx * TYPE BYTE]
 		mov BYTE PTR [edi], 0				; tip should ends up with 0
 
-		INVOKE AddNewAction, addr seq, seqLen, addr path, addr tip 	; add new action 
+		INVOKE AddNewAction, addr seq, seqLen, addr path, addr tip, pathType 	; add new action 
 		 
 	.endif 
 
@@ -240,6 +249,8 @@ ExportActions PROC
 
 	.while ecx > 0
 		
+		invoke OutputDword2File, (ACTION PTR [edi]).pathType	; output type 
+		invoke OutputSpace2File
 		invoke OutputDword2File, (ACTION PTR [edi]).len ; output len 
 		invoke OutputSpace2File
 
