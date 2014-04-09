@@ -35,10 +35,10 @@ tmpStr BYTE 1024 DUP(0)
 tmpStr2 BYTE 1024 DUP(0)
 ;----------- edit ------------------
 arrowSeq BYTE 1024 DUP(0)
-upArrow 			db    '‚Üë', 0
-downArrow 			db 	  '‚Üì', 0
-rightArrow 			db 	  '‚Üí', 0 
-leftArrow 			db 	  '‚Üê', 0
+upArrow 			db    '°¸', 0
+downArrow 			db 	  '°˝', 0
+rightArrow 			db 	  '°˙', 0 
+leftArrow 			db 	  '°˚', 0
 
 
 .code
@@ -376,7 +376,7 @@ LOCAL curActionPos:DWORD, seqStartPos:DWORD, pathStartPos:DWORD, tipStartPos:DWO
 
 	;INVOKE MessageBoxDwordArr, seqStartPos, len, tipStartPos
 	;invoke GetArrowSeq, seq, len
-	;INVOKE MessageBox, 0, eax, eax, 0
+	;INVOKE MessageBox, 0, addr upArrow, addr downArrow, 0
 	
 
 	ret 	

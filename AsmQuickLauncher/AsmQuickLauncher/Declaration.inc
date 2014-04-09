@@ -118,7 +118,6 @@ externdef train: DWORD
 ; ---------action map-------------
 externdef actionMap: PTR ACTION
 externdef actionLen: DWORD 
-externdef arrowSeq: DWORD
 
 ;---------- recognize ------------
 externdef bestMatch: SDWORD

@@ -44,12 +44,9 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 			invoke	SetDlgItemText, hWnd, IDC_GestureHint, addr (ACTION PTR actionMap).tip
 			invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR actionMap).path
 			invoke	GetArrowSeq, addr (ACTION PTR actionMap).seq, (ACTION PTR actionMap).len
-			mov		ebx, offset arrowSeq
-			invoke	SetDlgItemText, hWnd, IDC_GestureSequence, ebx
+			invoke	SetDlgItemText, hWnd, IDC_GestureSequence, offset arrowSeq
 			lea		eax, actionMap
 			mov		actionAddress, eax
-			;invoke	lstrcpy, szCurrentTip, addr (ACTION PTR actionMap).tip
-			;invoke	MessageBox, hWnd, addr szCurrentTip, offset szOpen, MB_OK
 	.elseif	eax == WM_CLOSE
 			invoke	EndDialog, hWnd, 0
 	.elseif	eax == WM_COMMAND
@@ -141,7 +138,8 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 					mov		actionAddress, ebx
 					invoke	SetDlgItemText, hWnd, IDC_GestureHint, addr (ACTION PTR [ebx]).tip
 					invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR [ebx]).path
-					;invoke	lstrcpy
+					invoke	GetArrowSeq, addr (ACTION PTR [ebx]).seq, (ACTION PTR [ebx]).len
+					invoke	SetDlgItemText, hWnd, IDC_GestureSequence, offset arrowSeq
 				.endif
 			.endif
 	.else
