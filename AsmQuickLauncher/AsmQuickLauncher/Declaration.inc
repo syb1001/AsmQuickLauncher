@@ -84,6 +84,13 @@ _ProcDlgMain PROTO,
 	wParam: DWORD,
 	lParam: DWORD
 
+;-----------input box--------------
+_ProcInputBoxMain PROTO,
+	hWnd: DWORD,
+	wMsg: DWORD,
+	wParam: DWORD,
+	lParam: DWORD
+
 ;----------------------------------
 ;==================================
 
@@ -113,6 +120,8 @@ externdef bestMatch: SDWORD
 externdef	hInstance:	DWORD
 externdef	hWinMain:	DWORD
 externdef	hMenu:		DWORD ; handler of main menu
+;-------------dialog---------------
+externdef	actionAddress:	DWORD
 ;----------------------------------
 
 ;==================================
@@ -147,6 +156,9 @@ IDC_ChooseDirectory	equ		1010
 IDC_EnterPath		equ		1012
 IDC_EditGesture		equ		1011
 IDC_GestureSequence	equ		1013
+;-----------input box--------------
+IDD_InputBox		equ		103
+IDC_InputPath		equ		1014
 ;------------bitmaps---------------
 IDB_LEFT			equ		201
 IDB_RIGHT			equ		202

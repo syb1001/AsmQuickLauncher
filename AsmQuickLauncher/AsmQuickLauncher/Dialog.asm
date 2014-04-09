@@ -8,11 +8,14 @@ include Declaration.inc
 szOpen			db		'open', 0
 szFileFilter	db		'All Files(*.*)', 0 , '*.*', 0, 0
 szTextTest		db		'≤‚ ‘“ªœ¬', 0
+upArrow			db		226,134,145, 0
 
 .data
 szCurrentPath		db		MAX_PATH DUP (?)
 szCurrentTip		db		1024 DUP (?)
 szCurrentType		db		?
+
+actionAddress		dd		?
 
 .code
 _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
@@ -42,6 +45,8 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 			invoke	SetDlgItemText, hWnd, IDC_GestureHint, addr (ACTION PTR actionMap).tip
 			invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR actionMap).path
 			invoke	SetDlgItemText, hWnd, IDC_GestureSequence, addr (ACTION PTR actionMap).seq
+			lea		eax, actionMap
+			mov		actionAddress, eax
 			;invoke	lstrcpy, szCurrentTip, addr (ACTION PTR actionMap).tip
 			;invoke	MessageBox, hWnd, addr szCurrentTip, offset szOpen, MB_OK
 	.elseif	eax == WM_CLOSE
@@ -49,6 +54,8 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 	.elseif	eax == WM_COMMAND
 			mov		eax, wParam
 			.if		ax == IDOK
+				invoke MessageBox, 0, addr upArrow, addr upArrow,0
+
 					; press ok button
 					; update this item in the actionMap
 					invoke	SendDlgItemMessage, hWnd, IDC_GestureList, CB_GETCURSEL, 0, 0
@@ -115,6 +122,10 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 							;invoke ShellExecute, NULL, addr szOpen, addr szCurrentPath, NULL, NULL, SW_SHOW
 						.endif
 					.endif
+			; input the path directly
+			.elseif	ax == IDC_EnterPath
+				; another modal dialog
+				invoke	DialogBoxParam, hInstance, IDD_InputBox, hWnd, offset _ProcInputBoxMain, NULL
 			.elseif	ax == IDC_GestureList
 				; process message of combo box here
 				shr		eax, 16
@@ -124,6 +135,7 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 					mul		edx
 					lea		ebx, actionMap
 					add		ebx, eax
+					mov		actionAddress, ebx
 					invoke	SetDlgItemText, hWnd, IDC_GestureHint, addr (ACTION PTR [ebx]).tip
 					invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR [ebx]).path
 					;invoke	lstrcpy
