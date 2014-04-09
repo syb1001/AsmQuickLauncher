@@ -10,7 +10,12 @@ szFileFilter	db		'All Files(*.*)', 0 , '*.*', 0, 0
 szTextTest		db		'≤‚ ‘“ªœ¬', 0
 
 .data
-szCurrentPath	db		MAX_PATH DUP (?)
+szCurrentPath		db		MAX_PATH DUP (?)
+szCurrentTip		db		1024 DUP (?)
+szCurrentType		db		?
+
+actionAddress		dd		?
+currentType			dd		0
 
 .code
 _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
@@ -20,14 +25,52 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 			@sei:		SHELLEXECUTEINFO
 
 	mov		eax, wMsg
-	.if		eax == WM_CLOSE
-			invoke	EndDialog, hWnd, NULL
+	.if		eax == WM_INITDIALOG
+			; init the dialog controls here
+			mov		eax, 0
+			.while	eax < actionLen
+				push	eax
+					
+				lea		ebx, actionMap
+				mov		edx, TYPE ACTION
+				mul		edx
+				add		ebx, eax
+				invoke	SendDlgItemMessage, hWnd, IDC_GestureList, CB_ADDSTRING, 0, addr (ACTION PTR [ebx]).tip
+
+				pop		eax
+				inc		eax
+			.endw
+
+			invoke	SendDlgItemMessage, hWnd, IDC_GestureList, CB_SETCURSEL, 0, 0
+			invoke	SetDlgItemText, hWnd, IDC_GestureHint, addr (ACTION PTR actionMap).tip
+			invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR actionMap).path
+			mov		eax, (ACTION PTR actionMap).pathType
+			mov		currentType, eax
+			invoke	GetArrowSeq, addr (ACTION PTR actionMap).seq, (ACTION PTR actionMap).len
+			invoke	SetDlgItemText, hWnd, IDC_GestureSequence, offset arrowSeq
+			lea		eax, actionMap
+			mov		actionAddress, eax
+	.elseif	eax == WM_CLOSE
+			invoke	EndDialog, hWnd, 0
 	.elseif	eax == WM_COMMAND
 			mov		eax, wParam
 			.if		ax == IDOK
-					invoke	EndDialog, hWnd, NULL
+					; press ok button
+					; update this item in the actionMap
+					invoke	SendDlgItemMessage, hWnd, IDC_GestureList, CB_GETCURSEL, 0, 0
+					mov		esi, eax
+					mov		edx, TYPE ACTION
+					mul		edx
+					lea		ebx, actionMap
+					add		ebx, eax
+					; update actionMap
+					invoke	GetDlgItemText, hWnd, IDC_GestureHint, addr (ACTION PTR [ebx]).tip, 1024
+					invoke	GetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR [ebx]).path, 1024
+					mov		eax, currentType
+					mov		(ACTION PTR [ebx]).pathType, eax
+					invoke	EndDialog, hWnd, 1
 			.elseif	ax == IDCANCEL
-					invoke	EndDialog, hWnd, NULL
+					invoke	EndDialog, hWnd, 0
 			; browse a file
 			.elseif ax == IDC_ChooseFile
 					invoke	RtlZeroMemory, addr @ofn, sizeof @ofn
@@ -40,8 +83,8 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 					mov		@ofn.Flags, OFN_FILEMUSTEXIST or OFN_PATHMUSTEXIST
 					invoke	GetOpenFileName, addr @ofn
 					.if	eax
-						invoke SetDlgItemText, hWnd, IDC_GesturePath, addr szCurrentPath
-						invoke ShellExecute, NULL, addr szOpen, addr szCurrentPath, NULL, NULL, SW_SHOW
+						mov		currentType, 0
+						invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr szCurrentPath
 					.endif
 			; browse a directory
 			.elseif ax == IDC_ChooseDirectory
@@ -59,6 +102,7 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 						; if not chose a file path, the function will fail
 						invoke SHGetPathFromIDList, @lpidlist, offset szCurrentPath
 						.if !eax
+							mov		currentType, 3
 							; unsuccessful getting the path, indicates that we choose a vitual path
 							; so will use ShellExecuteEx to open the vitual path
 
@@ -71,13 +115,45 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 							pop		@sei.lpIDList
 							mov		@sei.lpVerb, offset szOpen
 							mov		@sei.nShow, SW_SHOWNORMAL
-							invoke	ShellExecuteEx, addr @sei
+							; save the virtual path somewhere
+							;invoke	ShellExecuteEx, addr @sei
 						.else
+							mov		currentType, 1
 							; browse a normal file, change the path text and open it
 							invoke SetDlgItemText, hWnd, IDC_GesturePath, addr szCurrentPath
-							invoke ShellExecute, NULL, addr szOpen, addr szCurrentPath, NULL, NULL, SW_SHOW
 						.endif
 					.endif
+			; input the path directly
+			.elseif	ax == IDC_EnterPath
+				; another modal dialog
+				invoke	DialogBoxParam, hInstance, IDD_InputBox, hWnd, offset _ProcInputBoxMain, NULL
+				.if	eax == 1
+					mov		currentType, 2
+					mov		ebx, actionAddress
+					invoke SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR [ebx]).path
+				.endif
+			; edit the gesture sequence
+			.elseif ax == IDC_EditGesture
+				; third modal dialog
+				invoke	DialogBoxParam, hInstance, IDD_DirBox, hWnd, offset _ProcDirBoxMain, NULL
+				.if	eax == 1
+					invoke	SetDlgItemText, hWnd, IDC_GestureSequence, offset arrowString
+				.endif
+			.elseif	ax == IDC_GestureList
+				; process message of combo box here
+				shr		eax, 16
+				.if	ax == CBN_SELENDOK
+					invoke	SendDlgItemMessage, hWnd, IDC_GestureList, CB_GETCURSEL, 0, 0
+					mov		edx, TYPE ACTION
+					mul		edx
+					lea		ebx, actionMap
+					add		ebx, eax
+					mov		actionAddress, ebx
+					invoke	SetDlgItemText, hWnd, IDC_GestureHint, addr (ACTION PTR [ebx]).tip
+					invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR [ebx]).path
+					invoke	GetArrowSeq, addr (ACTION PTR [ebx]).seq, (ACTION PTR [ebx]).len
+					invoke	SetDlgItemText, hWnd, IDC_GestureSequence, offset arrowSeq
+				.endif
 			.endif
 	.else
 			mov		eax, FALSE

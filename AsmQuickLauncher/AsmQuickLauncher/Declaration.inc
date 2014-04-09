@@ -16,7 +16,7 @@ includelib	kernel32.lib
 includelib	masm32.lib
 includelib	shell32.lib
 includelib	Comdlg32.lib
-includelib MSVCRT.LIB
+includelib	MSVCRT.LIB
 ;==================================
 
 ;=============struct===============
@@ -25,6 +25,7 @@ ACTION STRUCT
 	seq dd 32 DUP(0)
 	path db 1024 DUP(0)
 	tip db 1024 DUP(0)
+	pathType dd 0
 ACTION ENDS 
 ;==================================
 
@@ -47,12 +48,21 @@ InitializeTrack PROTO
 Match PROTO,
 	dir: DWORD
 
+;--------------Util----------------
+GetArrowSeq PROTO,
+	p: PTR DWORD,
+	len: DWORD
+
+ExecuteMatch PROTO,
+	index: DWORD
+
 ;-------------Action---------------
 AddNewAction PROTO,
 	seq: PTR DWORD,
 	len: DWORD,
 	path: PTR BYTE,
-	tip: PTR BYTE
+	tip: PTR BYTE, 
+	pathType: DWORD
 
 ;-------------DEBUG----------------
 MessageBoxDwordArr PROTO,
@@ -84,6 +94,20 @@ _ProcDlgMain PROTO,
 	wParam: DWORD,
 	lParam: DWORD
 
+;-----------input box--------------
+_ProcInputBoxMain PROTO,
+	hWnd: DWORD,
+	wMsg: DWORD,
+	wParam: DWORD,
+	lParam: DWORD
+
+;------------dir box---------------
+_ProcDirBoxMain PROTO,
+	hWnd: DWORD,
+	wMsg: DWORD,
+	wParam: DWORD,
+	lParam: DWORD
+
 ;----------------------------------
 ;==================================
 
@@ -107,7 +131,15 @@ externdef actionMap: PTR ACTION
 externdef actionLen: DWORD 
 
 ;---------- recognize ------------
-externdef bestMatch: SDWORD 
+externdef bestMatch: SDWORD
+
+;---------- arrow ----------------
+externdef arrowSeq: BYTE
+externdef arrowString: BYTE
+externdef upArrow: BYTE
+externdef downArrow: BYTE
+externdef leftArrow: BYTE
+externdef rightArrow: BYTE
 
 ;-------------handler--------------
 externdef	hInstance:	DWORD
@@ -117,6 +149,9 @@ externdef	hMenu:		DWORD ; handler of main menu
 ;-------------windows-------------
 externdef	WINDOW_WIDTH:	DWORD
 externdef	WINDOW_HEIGHT:	DWORD
+
+;-------------dialog---------------
+externdef	actionAddress:	DWORD
 ;----------------------------------
 
 ;==================================
@@ -148,8 +183,21 @@ IDC_GestureHint		equ		1004
 IDC_GesturePath		equ		1008
 IDC_ChooseFile		equ		1009
 IDC_ChooseDirectory	equ		1010
+IDC_EnterPath		equ		1012
 IDC_EditGesture		equ		1011
-
+IDC_GestureSequence	equ		1013
+;-----------input box--------------
+IDD_InputBox		equ		103
+IDC_InputPath		equ		1014
+;------------dir box---------------
+IDD_DirBox			equ		104
+IDC_Up				equ		1015
+IDC_Down			equ		1016
+IDC_Left			equ		1017
+IDC_Right			equ		1018
+IDC_Clear			equ		1019
+IDC_DirBox			equ		1020
+;------------bitmaps---------------
 IDB_LEFT			equ		201
 IDB_RIGHT			equ		202
 IDB_UP				equ		203

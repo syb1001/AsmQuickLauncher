@@ -17,6 +17,12 @@ ProcessMenuEvents PROC,
 
 	.if evt == ID_MenuEdit
 		invoke	DialogBoxParam, hInstance, IDD_EditDialog, hWinMain, offset _ProcDlgMain, NULL
+		; if editing succeed, return IDOK
+		.if eax == IDOK
+			;invoke MessageBox, hWinMain, offset szMenuEditEnabled, offset szMenuEditEnabled, MB_YESNO
+			; return IDYES or IDNO
+			; save the settings here
+		.endif
 	.elseif evt == ID_MenuExit
 		invoke	DestroyWindow, hWinMain
 		invoke	PostQuitMessage, NULL

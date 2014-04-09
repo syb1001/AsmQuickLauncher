@@ -96,7 +96,9 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 			mov al, 0
 			mov isLButtonDown, al
 
-		   	; @wxc call shellExecute here		   	
+		   	; @wxc call shellExecute here		
+			;invoke	MessageBox, 0, offset szWarning, offset szOpen, 0
+			invoke	ExecuteMatch, bestMatch
 
 			invoke InitializeTrack			;  clear all for new track 
 			

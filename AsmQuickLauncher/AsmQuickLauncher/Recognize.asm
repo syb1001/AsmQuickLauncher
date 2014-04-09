@@ -34,6 +34,7 @@ lastDirection SDWORD -1
 tmpStr BYTE 1024 DUP(0)
 tmpStr2 BYTE 1024 DUP(0)
 
+
 .code
 
 CalTan PROC uses ebx edi,
@@ -309,8 +310,10 @@ AddNewAction PROC uses ebx esi edi edx,
 	seq: PTR DWORD,
 	len: DWORD,
 	path: PTR BYTE,
-	tip: PTR BYTE
-LOCAL seqStartPos:DWORD, pathStartPos:DWORD, tipStartPos:DWORD
+	tip: PTR BYTE, 
+	pathType: DWORD
+
+LOCAL curActionPos:DWORD, seqStartPos:DWORD, pathStartPos:DWORD, tipStartPos:DWORD
 
 ;--------set sequence-----------------------------------
 	mov ebx, OFFSET actionMap 	; point to the first element of actionMap
@@ -319,6 +322,8 @@ LOCAL seqStartPos:DWORD, pathStartPos:DWORD, tipStartPos:DWORD
 	mul esi  
 	lea edi, [ebx + eax]		; point to the len-th element of actionMap to insert a new ACTION
 	
+	mov curActionPos, edi 		; store pointer to current action 
+
 	mov ecx, len 
 	mov (ACTION PTR [edi]).len, ecx
 
@@ -335,27 +340,41 @@ LOCAL seqStartPos:DWORD, pathStartPos:DWORD, tipStartPos:DWORD
 	loop @B
 
 ;--------set responsive aciton path----------------
-	mov ebx, seqStartPos
-	mov eax,  MAX_SEQ_LEN
-	lea esi, [ebx + eax * TYPE DWORD]		; esi points to the start position of path
+	
+	mov edi, curActionPos
+	lea esi, (ACTION PTR [edi]).path
 	mov pathStartPos, esi 
+
 	INVOKE lstrcpy, pathStartPos, path
 ;-------------end-----------------------------------
 	
 ;-------- set tip ----------------
-	mov ebx, pathStartPos
-	mov eax,  MAX_PATH_LEN
-	lea esi, [ebx + eax * TYPE BYTE]		; esi points to the start position of tip
+	
+	mov edi, curActionPos
+	lea esi, (ACTION PTR [edi]).tip
 	mov tipStartPos, esi 
+
 	INVOKE lstrcpy, tipStartPos, tip
 ;-------------end-----------------------------------
-	inc actionLen
 
-	INVOKE MessageBoxDwordArr, seqStartPos, len, tipStartPos
+;-------- set type ----------------
+	mov edi, curActionPos
+	mov eax, pathType 
+	mov (ACTION PTR [edi]).pathType, eax 
+;-------------end-----------------------------------
+
+	inc actionLen
+	
+;-------------debug---------------------------------
+	
+
+	;INVOKE MessageBoxDwordArr, seqStartPos, len, tipStartPos
+	;invoke GetArrowSeq, seq, len
+	;INVOKE MessageBox, 0, addr upArrow, addr downArrow, 0
+	
 
 	ret 	
 AddNewAction ENDP
-
 
 MessageBoxDwordArr PROC uses eax ebx ecx edx esi edi,
 	pArr: PTR DWORD,
@@ -424,5 +443,6 @@ TestProc PROC uses eax ebx
 	ret 
 
 TestProc ENDP
+
 
 END
