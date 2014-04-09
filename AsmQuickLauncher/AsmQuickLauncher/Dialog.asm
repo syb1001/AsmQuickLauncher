@@ -10,24 +10,50 @@ szFileFilter	db		'All Files(*.*)', 0 , '*.*', 0, 0
 szTextTest		db		'≤‚ ‘“ªœ¬', 0
 
 .data
-szCurrentPath	db		MAX_PATH DUP (?)
+szCurrentPath		db		MAX_PATH DUP (?)
+szCurrentTip		db		1024 DUP (?)
+szCurrentType		db		?
 
 .code
 _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 	LOCAL	@ofn:		OPENFILENAME,
 			@bi:		BROWSEINFO,
 			@lpidlist:	DWORD,
-			@sei:		SHELLEXECUTEINFO
+			@sei:		SHELLEXECUTEINFO,
+			@listIndex: DWORD
 
 	mov		eax, wMsg
-	.if		eax == WM_CLOSE
-			invoke	EndDialog, hWnd, NULL
+	.if		eax == WM_INITDIALOG
+			; init the dialog controls here
+
+			mov		eax, 0
+
+			.while	eax < actionLen
+				push	eax
+					
+				lea		ebx, actionMap
+				mov		edx, TYPE ACTION
+				mul		edx
+				add		ebx, eax
+				invoke	SendDlgItemMessage, hWnd, IDC_GestureList, CB_ADDSTRING, 0, addr (ACTION PTR [ebx]).tip
+
+				pop		eax
+				inc		eax
+			.endw
+
+			invoke	SendDlgItemMessage, hWnd, IDC_GestureList, CB_SETCURSEL, 0, 0
+			invoke	SetDlgItemText, hWnd, IDC_GestureHint, addr (ACTION PTR actionMap).tip
+			invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR actionMap).path
+			invoke	lstrcpy, szCurrentTip, addr (ACTION PTR actionMap).tip
+			;invoke	MessageBox, hWnd, addr szCurrentTip, offset szOpen, MB_OK
+	.elseif	eax == WM_CLOSE
+			invoke	EndDialog, hWnd, 0
 	.elseif	eax == WM_COMMAND
 			mov		eax, wParam
 			.if		ax == IDOK
-					invoke	EndDialog, hWnd, NULL
+					invoke	EndDialog, hWnd, 1
 			.elseif	ax == IDCANCEL
-					invoke	EndDialog, hWnd, NULL
+					invoke	EndDialog, hWnd, 0
 			; browse a file
 			.elseif ax == IDC_ChooseFile
 					invoke	RtlZeroMemory, addr @ofn, sizeof @ofn
@@ -78,6 +104,19 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 							invoke ShellExecute, NULL, addr szOpen, addr szCurrentPath, NULL, NULL, SW_SHOW
 						.endif
 					.endif
+			.elseif	ax == IDC_GestureList
+				; process message of combo box here
+				shr		eax, 16
+				.if	ax == CBN_SELENDOK
+					invoke	SendDlgItemMessage, hWnd, IDC_GestureList, CB_GETCURSEL, 0, 0
+					mov		edx, TYPE ACTION
+					mul		edx
+					lea		ebx, actionMap
+					add		ebx, eax
+					invoke	SetDlgItemText, hWnd, IDC_GestureHint, addr (ACTION PTR [ebx]).tip
+					invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR [ebx]).path
+					;invoke	lstrcpy
+				.endif
 			.endif
 	.else
 			mov		eax, FALSE
