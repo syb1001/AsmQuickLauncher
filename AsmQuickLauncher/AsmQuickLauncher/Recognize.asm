@@ -33,6 +33,13 @@ lastDirection SDWORD -1
 ;----------DEBUG-------
 tmpStr BYTE 1024 DUP(0)
 tmpStr2 BYTE 1024 DUP(0)
+;----------- edit ------------------
+arrowSeq db 1024 DUP(0)
+upArrow 			db      '↑'
+downArrow 			db 		'↓'
+rightArrow 			db 		'→' 
+leftArrow 			db 		'←'
+
 
 .code
 
@@ -350,11 +357,50 @@ LOCAL seqStartPos:DWORD, pathStartPos:DWORD, tipStartPos:DWORD
 	INVOKE lstrcpy, tipStartPos, tip
 ;-------------end-----------------------------------
 	inc actionLen
-
+	
 	INVOKE MessageBoxDwordArr, seqStartPos, len, tipStartPos
+	
+	invoke GetArrowSeq, addr seq, seqLength
+
+	INVOKE MessageBox, 0, eax, eax, 0
 
 	ret 	
 AddNewAction ENDP
+
+GetArrowSeq PROC uses eax ecx esi edi,
+	p: PTR DWORD,
+	len: DWORD
+
+	mov ecx, len 
+	mov esi, p
+
+	mov edi, offset arrowSeq
+	mov BYTE PTR [edi], 0
+
+	.while ecx > 0
+		mov eax, [esi]
+		push ecx
+		push esi 
+
+		.if eax == 0
+			invoke lstrcat, addr arrowSeq, addr upArrow  
+		.elseif eax == 1
+			invoke lstrcat, addr arrowSeq, addr rightArrow  
+		.elseif eax == 2
+			invoke lstrcat, addr arrowSeq, addr downArrow  
+		.else 
+			invoke lstrcat, addr arrowSeq, addr leftArrow  
+		.endif 
+
+		pop esi
+		pop ecx 
+		add esi, TYPE DWORD
+		dec ecx
+	.endw 
+
+	mov eax, offset arrowSeq
+	ret 
+GetArrowSeq EndP
 
 
 MessageBoxDwordArr PROC uses eax ebx ecx edx esi edi,
@@ -424,5 +470,6 @@ TestProc PROC uses eax ebx
 	ret 
 
 TestProc ENDP
+
 
 END

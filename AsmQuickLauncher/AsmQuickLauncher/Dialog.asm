@@ -13,6 +13,11 @@ szTextTest		db		'≤‚ ‘“ªœ¬', 0
 szCurrentPath		db		MAX_PATH DUP (?)
 szCurrentTip		db		1024 DUP (?)
 szCurrentType		db		?
+;-----------arrow------------------
+upArrow 			db      24
+downArrow 			db 25
+rightArrow 			db 26
+leftArrow 			db 27
 
 .code
 _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
