@@ -25,6 +25,7 @@ ACTION STRUCT
 	seq dd 32 DUP(0)
 	path db 1024 DUP(0)
 	tip db 1024 DUP(0)
+	pathType dd 0
 ACTION ENDS 
 ;==================================
 
@@ -56,7 +57,8 @@ AddNewAction PROTO,
 	seq: PTR DWORD,
 	len: DWORD,
 	path: PTR BYTE,
-	tip: PTR BYTE
+	tip: PTR BYTE, 
+	pathType: DWORD
 
 ;-------------DEBUG----------------
 MessageBoxDwordArr PROTO,
@@ -120,6 +122,9 @@ externdef arrowSeq: DWORD
 
 ;---------- recognize ------------
 externdef bestMatch: SDWORD
+
+;---------- arrow ----------------
+externdef arrowSeq: BYTE
 
 ;-------------handler--------------
 externdef	hInstance:	DWORD
