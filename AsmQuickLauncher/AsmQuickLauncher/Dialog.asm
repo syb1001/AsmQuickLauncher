@@ -15,6 +15,7 @@ szCurrentTip		db		1024 DUP (?)
 szCurrentType		db		?
 
 actionAddress		dd		?
+currentType			dd		0
 
 .code
 _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
@@ -43,6 +44,8 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 			invoke	SendDlgItemMessage, hWnd, IDC_GestureList, CB_SETCURSEL, 0, 0
 			invoke	SetDlgItemText, hWnd, IDC_GestureHint, addr (ACTION PTR actionMap).tip
 			invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR actionMap).path
+			mov		eax, (ACTION PTR actionMap).pathType
+			mov		currentType, eax
 			invoke	GetArrowSeq, addr (ACTION PTR actionMap).seq, (ACTION PTR actionMap).len
 			invoke	SetDlgItemText, hWnd, IDC_GestureSequence, offset arrowSeq
 			lea		eax, actionMap
@@ -63,7 +66,8 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 					; update actionMap
 					invoke	GetDlgItemText, hWnd, IDC_GestureHint, addr (ACTION PTR [ebx]).tip, 1024
 					invoke	GetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR [ebx]).path, 1024
-
+					mov		eax, currentType
+					mov		(ACTION PTR [ebx]).pathType, eax
 					invoke	EndDialog, hWnd, 1
 			.elseif	ax == IDCANCEL
 					invoke	EndDialog, hWnd, 0
@@ -79,8 +83,8 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 					mov		@ofn.Flags, OFN_FILEMUSTEXIST or OFN_PATHMUSTEXIST
 					invoke	GetOpenFileName, addr @ofn
 					.if	eax
-						invoke SetDlgItemText, hWnd, IDC_GesturePath, addr szCurrentPath
-						;invoke ShellExecute, NULL, addr szOpen, addr szCurrentPath, NULL, NULL, SW_SHOW
+						mov		currentType, 0
+						invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr szCurrentPath
 					.endif
 			; browse a directory
 			.elseif ax == IDC_ChooseDirectory
@@ -98,6 +102,7 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 						; if not chose a file path, the function will fail
 						invoke SHGetPathFromIDList, @lpidlist, offset szCurrentPath
 						.if !eax
+							mov		currentType, 3
 							; unsuccessful getting the path, indicates that we choose a vitual path
 							; so will use ShellExecuteEx to open the vitual path
 
@@ -113,9 +118,9 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 							; save the virtual path somewhere
 							;invoke	ShellExecuteEx, addr @sei
 						.else
+							mov		currentType, 1
 							; browse a normal file, change the path text and open it
 							invoke SetDlgItemText, hWnd, IDC_GesturePath, addr szCurrentPath
-							;invoke ShellExecute, NULL, addr szOpen, addr szCurrentPath, NULL, NULL, SW_SHOW
 						.endif
 					.endif
 			; input the path directly
@@ -123,6 +128,7 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 				; another modal dialog
 				invoke	DialogBoxParam, hInstance, IDD_InputBox, hWnd, offset _ProcInputBoxMain, NULL
 				.if	eax == 1
+					mov		currentType, 2
 					mov		ebx, actionAddress
 					invoke SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR [ebx]).path
 				.endif
