@@ -16,7 +16,7 @@ includelib	kernel32.lib
 includelib	masm32.lib
 includelib	shell32.lib
 includelib	Comdlg32.lib
-includelib MSVCRT.LIB
+includelib	MSVCRT.LIB
 ;==================================
 
 ;=============struct===============
@@ -97,6 +97,13 @@ _ProcInputBoxMain PROTO,
 	wParam: DWORD,
 	lParam: DWORD
 
+;------------dir box---------------
+_ProcDirBoxMain PROTO,
+	hWnd: DWORD,
+	wMsg: DWORD,
+	wParam: DWORD,
+	lParam: DWORD
+
 ;----------------------------------
 ;==================================
 
@@ -124,6 +131,11 @@ externdef bestMatch: SDWORD
 
 ;---------- arrow ----------------
 externdef arrowSeq: BYTE
+externdef arrowString: BYTE
+externdef upArrow: BYTE
+externdef downArrow: BYTE
+externdef leftArrow: BYTE
+externdef rightArrow: BYTE
 
 ;-------------handler--------------
 externdef	hInstance:	DWORD
@@ -168,6 +180,14 @@ IDC_GestureSequence	equ		1013
 ;-----------input box--------------
 IDD_InputBox		equ		103
 IDC_InputPath		equ		1014
+;------------dir box---------------
+IDD_DirBox			equ		104
+IDC_Up				equ		1015
+IDC_Down			equ		1016
+IDC_Left			equ		1017
+IDC_Right			equ		1018
+IDC_Clear			equ		1019
+IDC_DirBox			equ		1020
 ;------------bitmaps---------------
 IDB_LEFT			equ		201
 IDB_RIGHT			equ		202
