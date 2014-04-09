@@ -208,7 +208,7 @@ ImportAcitons PROC
 		mov BYTE PTR [edi], 0				; tip should ends up with 0
 
 		INVOKE AddNewAction, addr seq, seqLen, addr path, addr tip 	; add new action 
-
+		 
 	.endif 
 
 	INVOKE	CloseHandle, @hFile

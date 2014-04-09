@@ -14,6 +14,11 @@ upArrow			db		226,134,145, 0
 szCurrentPath		db		MAX_PATH DUP (?)
 szCurrentTip		db		1024 DUP (?)
 szCurrentType		db		?
+;-----------arrow------------------
+upArrow 			db      24
+downArrow 			db 25
+rightArrow 			db 26
+leftArrow 			db 27
 
 actionAddress		dd		?
 
