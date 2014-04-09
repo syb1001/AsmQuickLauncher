@@ -28,6 +28,12 @@
   <ItemGroup>
     <ResourceCompile Include="AsmQuickLauncher.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="Down.bmp" />
+    <Image Include="Left.bmp" />
+    <Image Include="Right.bmp" />
+    <Image Include="Up.bmp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A27801C3-CAB7-4897-B698-0B817C79F464}</ProjectGuid>
     <RootNamespace>AsmQuickLauncher</RootNamespace>

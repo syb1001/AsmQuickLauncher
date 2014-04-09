@@ -8,6 +8,8 @@ include Declaration.inc
 ;--------------Mouse Track------------------------------------------------
 trackPoint POINT 1024 DUP(<>) 	; Mouse track Point
 trackLength DWORD 0 				; number of mouse track points
+drawPoint POINT 1024 DUP(<>)
+drawLength DWORD 0
 trackSeq DWORD 1024 DUP(0)		; store track direction 
 seqLength DWORD 0					; number of directions
 ;--------------------------------------------------------------------------
@@ -345,7 +347,7 @@ MessageBoxDwordArr PROC uses eax ebx ecx edx esi edi,
 	path: PTR BYTE
 
 	mov ecx, len 
-	.if ecx < 0
+	.if ecx < 1
 		ret 
 	.endif 
 	mov ebx, pArr
@@ -365,9 +367,10 @@ MessageBoxDwordArr ENDP
 
 InitializeTrack PROC
 	
-	invoke MessageBoxDwordArr, addr trackSeq, seqLength, addr tmpStr
+	;invoke MessageBoxDwordArr, addr trackSeq, seqLength, addr tmpStr
 
 	mov trackLength, 0
+	mov drawLength, 0
 	mov seqLength, 0
 
 	mov ecx, MAX_MAP_SIZE
