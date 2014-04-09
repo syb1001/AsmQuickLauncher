@@ -48,9 +48,13 @@ InitializeTrack PROTO
 Match PROTO,
 	dir: DWORD
 
+;--------------Util----------------
 GetArrowSeq PROTO,
 	p: PTR DWORD,
 	len: DWORD
+
+ExecuteMatch PROTO,
+	index: DWORD
 
 ;-------------Action---------------
 AddNewAction PROTO,
