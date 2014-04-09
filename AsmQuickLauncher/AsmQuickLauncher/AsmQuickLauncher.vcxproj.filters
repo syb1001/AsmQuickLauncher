@@ -33,6 +33,9 @@
     <MASM Include="Dialog.asm">
       <Filter>源文件</Filter>
     </MASM>
+    <MASM Include="InputBox.asm">
+      <Filter>源文件</Filter>
+    </MASM>
   </ItemGroup>
   <ItemGroup>
     <None Include="Declaration.inc">

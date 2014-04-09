@@ -14,6 +14,7 @@
     <MASM Include="FileOperation.asm" />
     <MASM Include="Dialog.asm" />
     <MASM Include="Graphics.asm" />
+    <MASM Include="InputBox.asm" />
     <MASM Include="Main.asm" />
     <MASM Include="Recognize.asm" />
     <MASM Include="UI.asm" />

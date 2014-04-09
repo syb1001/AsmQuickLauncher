@@ -13,26 +13,20 @@ szTextTest		db		'≤‚ ‘“ªœ¬', 0
 szCurrentPath		db		MAX_PATH DUP (?)
 szCurrentTip		db		1024 DUP (?)
 szCurrentType		db		?
-;-----------arrow------------------
-upArrow 			db      24
-downArrow 			db 25
-rightArrow 			db 26
-leftArrow 			db 27
+
+actionAddress		dd		?
 
 .code
 _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 	LOCAL	@ofn:		OPENFILENAME,
 			@bi:		BROWSEINFO,
 			@lpidlist:	DWORD,
-			@sei:		SHELLEXECUTEINFO,
-			@listIndex: DWORD
+			@sei:		SHELLEXECUTEINFO
 
 	mov		eax, wMsg
 	.if		eax == WM_INITDIALOG
 			; init the dialog controls here
-
 			mov		eax, 0
-
 			.while	eax < actionLen
 				push	eax
 					
@@ -49,13 +43,27 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 			invoke	SendDlgItemMessage, hWnd, IDC_GestureList, CB_SETCURSEL, 0, 0
 			invoke	SetDlgItemText, hWnd, IDC_GestureHint, addr (ACTION PTR actionMap).tip
 			invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR actionMap).path
-			invoke	lstrcpy, szCurrentTip, addr (ACTION PTR actionMap).tip
-			;invoke	MessageBox, hWnd, addr szCurrentTip, offset szOpen, MB_OK
+			invoke	GetArrowSeq, addr (ACTION PTR actionMap).seq, (ACTION PTR actionMap).len
+			invoke	SetDlgItemText, hWnd, IDC_GestureSequence, offset arrowSeq
+			lea		eax, actionMap
+			mov		actionAddress, eax
 	.elseif	eax == WM_CLOSE
 			invoke	EndDialog, hWnd, 0
 	.elseif	eax == WM_COMMAND
 			mov		eax, wParam
 			.if		ax == IDOK
+					; press ok button
+					; update this item in the actionMap
+					invoke	SendDlgItemMessage, hWnd, IDC_GestureList, CB_GETCURSEL, 0, 0
+					mov		esi, eax
+					mov		edx, TYPE ACTION
+					mul		edx
+					lea		ebx, actionMap
+					add		ebx, eax
+					; update actionMap
+					invoke	GetDlgItemText, hWnd, IDC_GestureHint, addr (ACTION PTR [ebx]).tip, 1024
+					invoke	GetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR [ebx]).path, 1024
+
 					invoke	EndDialog, hWnd, 1
 			.elseif	ax == IDCANCEL
 					invoke	EndDialog, hWnd, 0
@@ -72,7 +80,7 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 					invoke	GetOpenFileName, addr @ofn
 					.if	eax
 						invoke SetDlgItemText, hWnd, IDC_GesturePath, addr szCurrentPath
-						invoke ShellExecute, NULL, addr szOpen, addr szCurrentPath, NULL, NULL, SW_SHOW
+						;invoke ShellExecute, NULL, addr szOpen, addr szCurrentPath, NULL, NULL, SW_SHOW
 					.endif
 			; browse a directory
 			.elseif ax == IDC_ChooseDirectory
@@ -102,13 +110,22 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 							pop		@sei.lpIDList
 							mov		@sei.lpVerb, offset szOpen
 							mov		@sei.nShow, SW_SHOWNORMAL
-							invoke	ShellExecuteEx, addr @sei
+							; save the virtual path somewhere
+							;invoke	ShellExecuteEx, addr @sei
 						.else
 							; browse a normal file, change the path text and open it
 							invoke SetDlgItemText, hWnd, IDC_GesturePath, addr szCurrentPath
-							invoke ShellExecute, NULL, addr szOpen, addr szCurrentPath, NULL, NULL, SW_SHOW
+							;invoke ShellExecute, NULL, addr szOpen, addr szCurrentPath, NULL, NULL, SW_SHOW
 						.endif
 					.endif
+			; input the path directly
+			.elseif	ax == IDC_EnterPath
+				; another modal dialog
+				invoke	DialogBoxParam, hInstance, IDD_InputBox, hWnd, offset _ProcInputBoxMain, NULL
+				.if	eax == 1
+					mov		ebx, actionAddress
+					invoke SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR [ebx]).path
+				.endif
 			.elseif	ax == IDC_GestureList
 				; process message of combo box here
 				shr		eax, 16
@@ -118,9 +135,11 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 					mul		edx
 					lea		ebx, actionMap
 					add		ebx, eax
+					mov		actionAddress, ebx
 					invoke	SetDlgItemText, hWnd, IDC_GestureHint, addr (ACTION PTR [ebx]).tip
 					invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR [ebx]).path
-					;invoke	lstrcpy
+					invoke	GetArrowSeq, addr (ACTION PTR [ebx]).seq, (ACTION PTR [ebx]).len
+					invoke	SetDlgItemText, hWnd, IDC_GestureSequence, offset arrowSeq
 				.endif
 			.endif
 	.else
