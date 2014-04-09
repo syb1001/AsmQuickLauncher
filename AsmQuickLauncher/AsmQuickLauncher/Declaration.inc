@@ -31,14 +31,14 @@ ACTION ENDS
 ;============procedure=============
 ;-------Track & Recognition--------
 CalTan PROTO,
-	X : SDWORD,
-	Y : SDWORD
+	X : DWORD,
+	Y : DWORD
 
 GetDirection PROTO,
-	x0: SDWORD,
-	x1: SDWORD,
-	y0: SDWORD,
-	y1: SDWORD
+	x0: DWORD,
+	x1: DWORD,
+	y0: DWORD,
+	y1: DWORD
 
 RecognizeTrack PROTO
 
