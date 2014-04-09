@@ -126,6 +126,10 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 					mov		ebx, actionAddress
 					invoke SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR [ebx]).path
 				.endif
+			; edit the gesture sequence
+			.elseif ax == IDC_EditGesture
+				; another modal dialog
+				invoke	DialogBoxParam, hInstance, IDD_DirBox, hWnd, offset _ProcDirBoxMain, NULL
 			.elseif	ax == IDC_GestureList
 				; process message of combo box here
 				shr		eax, 16

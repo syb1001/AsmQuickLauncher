@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <MASM Include="DirBox.asm" />
     <MASM Include="FileOperation.asm" />
     <MASM Include="Dialog.asm" />
     <MASM Include="Graphics.asm" />
