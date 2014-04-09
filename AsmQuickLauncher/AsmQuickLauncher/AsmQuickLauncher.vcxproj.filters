@@ -52,4 +52,18 @@
       <Filter>资源文件</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="Down.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Left.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Right.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Up.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+  </ItemGroup>
 </Project>
