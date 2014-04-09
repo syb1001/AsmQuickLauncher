@@ -37,18 +37,12 @@ tmpStr2 BYTE 1024 DUP(0)
 .code
 
 CalTan PROC uses ebx edi,
-	X : SDWORD,
-	Y : SDWORD
+	X : DWORD,
+	Y : DWORD
 
 	mov ebx, X
-	.IF X < 0
-		neg ebx
-	.ENDIF
-
+	
 	mov edi, Y
-	.IF Y < 0
-		neg edi
-	.ENDIF
 
 	.IF edi > ebx
 		mov eax, 1
@@ -61,42 +55,61 @@ CalTan PROC uses ebx edi,
 CalTan ENDP
 
 GetDirection PROC uses edx esi edi,
-	x0: SDWORD,
-	x1: SDWORD,
-	y0: SDWORD,
-	y1: SDWORD
-LOCAL delX : SDWORD, delY : SDWORD
- 
+	x0: DWORD,
+	x1: DWORD,
+	y0: DWORD,
+	y1: DWORD
+LOCAL delX : DWORD, delY : DWORD, signX: DWORD, signY: DWORD 
+ 	
 	mov edx, x1
-	sub edx, x0
-	mov delX, edx
+	.if edx < x0  			
+		mov signX, 1 		; signX = 1: dexX < 0
+		mov edx, x0
+		sub edx, x1 
+	.else
+		mov signX, 0		; signX = 0: delX >= 0
+		sub edx, x0	
+	.endif 
+	mov delX, edx	; dexX = |X1 - X0|
+
 
 	mov esi, y0
-	sub esi, y1
-	mov delY, esi
+	.if esi < y1
+		mov signY, 1 	; signY = 1: dexY < 0
+		mov esi, y1
+		sub esi, y0
+	.else 
+		mov signY, 0	; signY = 0: delY >= 0
+		sub esi, y1
+	.endif 
+	mov delY, esi 		; dexY = |Y0 - Y1|
 
 	; return eax = 0(up), 1(right), 2(down), 3(left)	 
 	.IF delX == 0       			; along Y-axis
-		.IF delY >= 0
+		.IF signY == 0				; delY >= 0
 			mov eax, 0
 		.ELSE 
 			mov eax, 2
 		.ENDIF
 	
-	.ELSEIF delX > 0				; in the right part
+	.ELSEIF signX == 0				; delX > 0, in the right part
 		
 		INVOKE CalTan, edx, esi	; tan = tan(delY/delX)
+
 		mov edi, eax				
 
 		.IF delY == 0				; along Y-axis
 			mov eax, 1
-		.ELSEIF delY > 0			; quadrant I
+		
+		.ELSEIF signY == 0 			; delY > 0, quadrant I
+
 			.IF edi > 0
 				mov eax, 0
 			.ELSE
 				mov eax, 1
 			.ENDIF
-		.ELSEIF 					; quadrant IV
+
+		.ELSE 						; delY > 0, quadrant IV
 			.IF edi > 0
 				mov eax, 2
 			.ELSE
@@ -104,21 +117,23 @@ LOCAL delX : SDWORD, delY : SDWORD
 			.ENDIF
 		.ENDIF
 
-	.ELSEIF 						; in the left part
+	.ELSE 						; delX < 0, in the left part
 
 		INVOKE CalTan, edx, esi	; tan = tan(delY/delX)
 		mov edi, eax				
 
 		.IF delY == 0				; along Y-axis
 			mov eax, 3
-		.ELSEIF delY > 0			; quadrant II
+		
+		.ELSEIF signY == 0 			; delY > 0, quadrant II
 			.IF edi > 0
 				mov eax, 0
 			.ELSE
 				mov eax, 3
 			.ENDIF
-		.ELSEIF 					; quadrant III
-			.IF delY > 0
+		
+		.ELSE 						; delY > 0, quadrant III
+			.IF edi > 0
 				mov eax, 2
 			.ELSE
 				mov eax, 3
@@ -340,6 +355,7 @@ LOCAL seqStartPos:DWORD, pathStartPos:DWORD, tipStartPos:DWORD
 
 	ret 	
 AddNewAction ENDP
+
 
 MessageBoxDwordArr PROC uses eax ebx ecx edx esi edi,
 	pArr: PTR DWORD,
