@@ -361,9 +361,9 @@ LOCAL seqStartPos:DWORD, pathStartPos:DWORD, tipStartPos:DWORD
 ;-------------debug---------------------------------
 	
 
-	INVOKE MessageBoxDwordArr, seqStartPos, len, tipStartPos
-	invoke GetArrowSeq, seq, len
-	INVOKE MessageBox, 0, eax, eax, 0
+	;INVOKE MessageBoxDwordArr, seqStartPos, len, tipStartPos
+	;invoke GetArrowSeq, seq, len
+	;INVOKE MessageBox, 0, eax, eax, 0
 	
 
 	ret 	

@@ -43,7 +43,9 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 			invoke	SendDlgItemMessage, hWnd, IDC_GestureList, CB_SETCURSEL, 0, 0
 			invoke	SetDlgItemText, hWnd, IDC_GestureHint, addr (ACTION PTR actionMap).tip
 			invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR actionMap).path
-			invoke	SetDlgItemText, hWnd, IDC_GestureSequence, addr (ACTION PTR actionMap).seq
+			invoke	GetArrowSeq, addr (ACTION PTR actionMap).seq, (ACTION PTR actionMap).len
+			mov		ebx, offset arrowSeq
+			invoke	SetDlgItemText, hWnd, IDC_GestureSequence, ebx
 			lea		eax, actionMap
 			mov		actionAddress, eax
 			;invoke	lstrcpy, szCurrentTip, addr (ACTION PTR actionMap).tip
