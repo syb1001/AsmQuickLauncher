@@ -34,6 +34,7 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 		local	@stPs:PAINTSTRUCT
 		local	@stRect:RECT
 		local	@hDc
+		local	@coord_x:DWORD, @coord_y:DWORD, @lastpoint_x:DWORD, @lastpoint_y:DWORD
 
 		mov	eax,uMsg
 
@@ -58,11 +59,32 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 			invoke	ProcessMenuEvents, eax
 ;********************************************************************
 		.elseif eax == WM_LBUTTONDOWN
-			mov al, 1
-			mov isLButtonDown, al
+			;给判断方向的点列赋初始值
+			mov edi, OFFSET trackPoint
+			movzx esi, WORD PTR lParam
+			mov (POINT PTR [edi]).x, esi
+			movzx esi, WORD PTR [lParam + 2]
+			mov (POINT PTR [edi]).y, esi
+			mov trackLength, 1
+			mov isLButtonDown, 1
+
+			;给当前的点赋初始值
+			mov edi, OFFSET lastPoint
+			movzx esi, WORD PTR lParam
+			mov (POINT PTR [edi]).x, esi
+			movzx esi, WORD PTR [lParam + 2]
+			mov (POINT PTR [edi]).y, esi
+
+			;给画线轨迹的点列赋初始值
+			mov edi, OFFSET drawPoint
+			movzx esi, WORD PTR lParam
+			mov (POINT PTR [edi]).x, esi
+			movzx esi, WORD PTR [lParam + 2]
+			mov (POINT PTR [edi]).y, esi
+			mov drawLength, 1
 			
 		.elseif eax == WM_LBUTTONUP
-			mov edi, OFFSET trackPoint
+			mov edi, OFFSET drawPoint
 			mov al, 0
 			mov isLButtonDown, al
 
@@ -74,22 +96,77 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 
 		.elseif eax == WM_MOUSEMOVE
 			.if isLButtonDown == 1
-				mov edi, OFFSET trackPoint
-				mov ecx, trackLength
+				mov edi, OFFSET drawPoint
+				mov ecx, drawLength
 				imul ecx, SIZEOF POINT
 				add edi, ecx
 				movzx esi, WORD PTR lParam
 				mov (POINT PTR [edi]).x, esi
 				movzx esi, WORD PTR [lParam + 2]
 				mov (POINT PTR [edi]).y, esi
-				inc trackLength
+				inc drawLength
 
-				invoke RecognizeTrack			; recognize the gesture
+				;判断当前的点能否加入到判定方向的点列中
+				movzx esi, WORD PTR lParam
+				mov @coord_x, esi
+				movzx esi, WORD PTR [lParam + 2]
+				mov @coord_y, esi
+				mov edi, OFFSET lastPoint
+				mov esi, (POINT PTR [edi]).x
+				mov ebx, 0
 
-				.if trackLength == 1024
+				.if @coord_x > esi
+					add ebx, @coord_x
+					sub ebx, esi
+				.else
+					add ebx, esi
+					sub ebx, @coord_x
+				.endif
+
+				mov esi, (POINT PTR [edi]).y
+				.if @coord_y > esi
+					add ebx, @coord_y
+					sub ebx, esi
+				.else
+					add ebx, esi
+					sub ebx, @coord_y
+				.endif
+
+				.if ebx > 30
+					;更新最近的有效点
+					mov esi, @coord_x
+					mov (POINT PTR [edi]).x, esi
+					mov esi, @coord_y
+					mov (POINT PTR [edi]).y, esi
+
+					;更新判断方向的点列
+					mov edi, OFFSET trackPoint
+					mov ecx, trackLength
+					imul ecx, SIZEOF POINT
+					add edi, ecx
+					movzx esi, WORD PTR lParam
+					mov (POINT PTR [edi]).x, esi
+					movzx esi, WORD PTR [lParam + 2]
+					mov (POINT PTR [edi]).y, esi
+					inc trackLength
+					invoke RecognizeTrack
+				.endif
+
+				;invoke RecognizeTrack			; recognize the gesture
+
+				.if drawLength == 1024
 					mov al, 0
 					mov isLButtonDown, al
 				.endif 
+
+				.if drawLength >20
+					mov edi, OFFSET drawPoint
+				.endif
+				
+				;mov esi, OFFSET trackSeq
+				;.if seqLength>10
+				;	mov esi, 0
+				;.endif
 
 			.endif
 			invoke	InvalidateRect,hWnd,NULL,0

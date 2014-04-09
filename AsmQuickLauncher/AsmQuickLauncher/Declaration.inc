@@ -31,14 +31,14 @@ ACTION ENDS
 ;============procedure=============
 ;-------Track & Recognition--------
 CalTan PROTO,
-	X : SDWORD,
-	Y : SDWORD
+	X : DWORD,
+	Y : DWORD
 
 GetDirection PROTO,
-	x0: SDWORD,
-	x1: SDWORD,
-	y0: SDWORD,
-	y1: SDWORD
+	x0: DWORD,
+	x1: DWORD,
+	y0: DWORD,
+	y1: DWORD
 
 RecognizeTrack PROTO
 
@@ -95,6 +95,10 @@ externdef	trackSeq:		DWORD
 externdef	seqLength:		DWORD
 externdef	trainSeq:		DWORD
 externdef	trainLength:	DWORD
+externdef	drawPoint:		PTR POINT
+externdef	drawLength:		DWORD
+externdef	lastDirection:	SDWORD
+externdef	lastPoint:		PTR POINT
 ;----------------------------------
 externdef train: DWORD
 
@@ -141,6 +145,12 @@ IDC_GesturePath		equ		1008
 IDC_ChooseFile		equ		1009
 IDC_ChooseDirectory	equ		1010
 IDC_EditGesture		equ		1011
+
+IDB_LEFT			equ		201
+IDB_RIGHT			equ		202
+IDB_UP				equ		203
+IDB_DOWN			equ		204
+
 
 
 ;---------window attribute-----------
