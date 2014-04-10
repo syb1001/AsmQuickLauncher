@@ -173,6 +173,10 @@ IDR_MainMenu		equ		101
 ID_MenuExit			equ		40001
 ID_MenuEnable		equ		40002
 ID_MenuEdit			equ		40003
+ID_MenuNewGesture	equ		40004
+ID_MenuFront		equ		40005
+ID_MenuWindowFront	equ		40006
+ID_MenuAutoRun		equ		40007
 ;--------dialog resources----------
 IDD_EditDialog		equ		102
 IDC_GestureList		equ		1001

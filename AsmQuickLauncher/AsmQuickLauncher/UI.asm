@@ -6,7 +6,8 @@ include Declaration.inc
 
 EnableMainFunction PROTO
 DisableMainFunction PROTO
-
+SetWindowFront PROTO
+SetWindowNotFront PROTO
 
 .const
 szMenuEditEnabled	db	'∆Ù”√π¶ƒ‹', 0
@@ -38,6 +39,13 @@ ProcessMenuEvents PROC,
 		.else
 			invoke	EnableMainFunction
 		.endif
+	.elseif	eax ==	ID_MenuWindowFront
+		invoke	GetMenuState, hMenu, ID_MenuWindowFront, MF_BYCOMMAND
+		.if		eax & MF_CHECKED
+			invoke	SetWindowNotFront
+		.else
+			invoke	SetWindowFront
+		.endif
 	.endif
 
 	ret
@@ -57,5 +65,17 @@ DisableMainFunction PROC
 	;invoke	ModifyMenu,	hMenu, ID_MenuEnable, MF_UNCHECKED, ID_MenuEnable, 0
 	ret
 DisableMainFunction ENDP
+
+SetWindowFront PROC
+	invoke	CheckMenuItem, hMenu, ID_MenuWindowFront, MF_CHECKED
+	invoke	SetWindowPos,hWinMain,HWND_TOPMOST,0,0,0,0,SWP_NOMOVE or SWP_NOSIZE
+	ret
+SetWindowFront ENDP
+
+SetWindowNotFront PROC
+	invoke	CheckMenuItem, hMenu, ID_MenuWindowFront, MF_UNCHECKED
+	invoke	SetWindowPos,hWinMain,HWND_NOTOPMOST,0,0,0,0,SWP_NOMOVE or SWP_NOSIZE
+	ret
+SetWindowNotFront ENDP
 
 END
