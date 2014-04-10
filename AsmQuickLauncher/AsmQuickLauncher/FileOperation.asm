@@ -15,8 +15,12 @@ include Declaration.inc
 .data
 
 szFileName	BYTE SETTINGS_FILE
-szErrOpenFile BYTE 'Can not open settings.ini', 0
-szErrCreateFile BYTE 'Can not update settings.ini', 0
+szErrOpenFile BYTE '配置文件不存在，已自动创建新的配置文件', 0
+szErrCreateFile BYTE '更新配置文件失败！', 0
+szMessageBoxCaption BYTE '配置文件操作失败', 0
+
+; save the absolute path of settings.ini
+szProcFileName	BYTE	MAX_PATH DUP(?)
 
 fpHandle DWORD ?
 
@@ -87,7 +91,7 @@ ImportAcitons PROC
 	INVOKE	CreateFile,addr szFileName,GENERIC_READ,FILE_SHARE_READ,0,\
 			OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0
 	.if	eax ==	INVALID_HANDLE_VALUE
-		invoke	MessageBox,hWinMain,addr szErrOpenFile,NULL,MB_OK or MB_ICONEXCLAMATION
+		invoke	MessageBox,hWinMain,addr szErrOpenFile,addr szMessageBoxCaption,MB_OK or MB_ICONEXCLAMATION
 		ret
 	.endif
 	mov	@hFile,eax	; store the fileHandle 
@@ -230,13 +234,28 @@ ImportAcitons ENDP
 
 ExportActions PROC
 	local index: dword
-	
+
+	;---------------modified by syb-----------------------------------
+	; get the absolute path of settings.ini, or file saving may fail
+	invoke GetModuleFileName, 0, offset szProcFileName, MAX_PATH
+	invoke	lstrlen, offset szProcFileName
+	mov		ecx, eax
+	.while	szProcFileName[ecx] != '\'
+		dec	ecx
+	.endw
+	inc		ecx
+	mov		szProcFileName[ecx], 0
+	invoke	lstrcat, offset szProcFileName, offset szFileName1
+	;-----------------------------------------------------------------
+
+	mov		ebx, eax
 	pushad
 	;---------------- open settings.ini ------------------------------
-	invoke	CreateFile,addr szFileName1,GENERIC_WRITE,FILE_SHARE_READ,\
+	; szFileName1 changed to szProcFileName
+	invoke	CreateFile,addr szProcFileName,GENERIC_WRITE,FILE_SHARE_READ,\
 			0,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,0
 	.if	eax ==	INVALID_HANDLE_VALUE
-			invoke	MessageBox,hWinMain,addr szErrCreateFile,NULL,MB_OK or MB_ICONEXCLAMATION
+			invoke	MessageBox,hWinMain,addr szErrCreateFile,addr szMessageBoxCaption,MB_OK or MB_ICONEXCLAMATION
 			ret
 	.endif
 	mov fpHandle, eax	; store the fileHandle 
