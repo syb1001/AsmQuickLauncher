@@ -93,6 +93,9 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 					pop		@bi.hwndOwner
 					mov		@bi.pszDisplayName, offset szCurrentPath
 					or		@bi.ulFlags, BIF_USENEWUI
+					; disable the function to browse virtual path
+					; waiting for better solution
+					or		@bi.ulFlags, BIF_RETURNONLYFSDIRS
 					; invoke the common dialog
 					invoke	SHBrowseForFolder, addr @bi
 					; if success (usually success)

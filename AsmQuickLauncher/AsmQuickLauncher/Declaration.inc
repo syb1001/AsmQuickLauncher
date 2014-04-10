@@ -146,7 +146,9 @@ externdef	hInstance:	DWORD
 externdef	hWinMain:	DWORD
 externdef	hMenu:		DWORD ; handler of main menu
 ;-------------dialog---------------
-externdef	actionAddress:	DWORD
+externdef	actionAddress:		DWORD
+;------------function--------------
+externdef	functionEnabled:	BYTE
 ;----------------------------------
 
 ;==================================

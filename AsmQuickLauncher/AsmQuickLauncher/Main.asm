@@ -4,7 +4,6 @@ option casemap:none
 
 ;================Include===================
 include Declaration.inc
-;==========================================
 
 .const
 ;=============Static String================
@@ -12,20 +11,12 @@ szClassName		db	'MyClass',0
 szCaptionMain	db	'Asm Quick Launcher',0
 szText			db	'Drag Your Mouse Here',0
 
-;===============Local Path=================
-szOpen			db	'open',0
-szPathExplorer	db	'explorer.exe',0
-szPathNotepad	db	'notepad.exe',0
-szPathText		db	'C:\\',0
-;==========================================
-
 .data
 ;================Variables=================
 hInstance		dd		?
 hWinMain		dd		?
 isLButtonDown	BYTE	0
 isRButtonDown	BYTE	0
-		
 .code
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; 窗口过程
@@ -59,6 +50,9 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 			invoke	ProcessMenuEvents, eax
 ;********************************************************************
 		.elseif eax == WM_LBUTTONDOWN
+			.if	functionEnabled == FALSE
+				ret
+			.endif
 			;给判断方向的点列赋初始值
 			mov edi, OFFSET trackPoint
 			movzx esi, WORD PTR lParam
@@ -84,12 +78,14 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 			mov drawLength, 1
 			
 		.elseif eax == WM_LBUTTONUP
+			.if	functionEnabled == FALSE
+				ret
+			.endif
 			mov edi, OFFSET drawPoint
 			mov al, 0
 			mov isLButtonDown, al
 
 		   	; @wxc call shellExecute here		
-			;invoke	MessageBox, 0, offset szWarning, offset szOpen, 0
 			invoke	ExecuteMatch, bestMatch
 
 			invoke InitializeTrack			;  clear all for new track 
@@ -97,6 +93,9 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 			invoke	InvalidateRect,hWnd,NULL,1
 
 		.elseif eax == WM_MOUSEMOVE
+			.if	functionEnabled == FALSE
+				ret
+			.endif
 			.if isLButtonDown == 1
 				mov edi, OFFSET drawPoint
 				mov ecx, drawLength
