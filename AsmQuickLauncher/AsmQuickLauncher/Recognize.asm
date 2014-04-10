@@ -265,7 +265,7 @@ Match PROC uses ebx edx ecx edi esi,
 
 	mov SDWORD PTR eax, -1
 	mov bestMatch, eax 				; Initialize bestMatch with -1 means no match 
-	mov smallestLenDif, 999999		; Initialize smallestLenDif with oo
+	mov closestLen, 999999		; Initialize smallestLenDif with oo
 
 	mov ecx, actionLen 				; use length of actionMap as the loop counter 
 
