@@ -6,7 +6,6 @@ include Declaration.inc
 
 .data
 ;----------- edit ------------------
-arrowSeq BYTE 1024 DUP(0)
 upArrow 			db    '¡ü', 0
 downArrow 			db 	  '¡ý', 0
 rightArrow 			db 	  '¡ú', 0 
@@ -18,12 +17,13 @@ szOpen			db		'open', 0
 .code
 GetArrowSeq PROC uses eax ecx esi edi,
 	p: PTR DWORD,
-	len: DWORD
+	len: DWORD,
+	dest: PTR BYTE
 
 	mov ecx, len 
 	mov esi, p
 
-	mov edi, offset arrowSeq
+	mov edi, dest
 	mov BYTE PTR [edi], 0
 
 	.while ecx > 0
@@ -32,13 +32,13 @@ GetArrowSeq PROC uses eax ecx esi edi,
 		push esi 
 
 		.if eax == 0
-			invoke lstrcat, addr arrowSeq, addr upArrow  
+			invoke lstrcat, dest, offset upArrow  
 		.elseif eax == 1
-			invoke lstrcat, addr arrowSeq, addr rightArrow  
+			invoke lstrcat, dest, offset rightArrow  
 		.elseif eax == 2
-			invoke lstrcat, addr arrowSeq, addr downArrow  
+			invoke lstrcat, dest, offset downArrow  
 		.else 
-			invoke lstrcat, addr arrowSeq, addr leftArrow  
+			invoke lstrcat, dest, offset leftArrow  
 		.endif 
 
 		pop esi
@@ -47,7 +47,6 @@ GetArrowSeq PROC uses eax ecx esi edi,
 		dec ecx
 	.endw 
 
-	mov eax, offset arrowSeq
 	ret 
 GetArrowSeq EndP
 
@@ -65,7 +64,7 @@ ExecuteMatch PROC uses eax ecx esi edi,
 	add		ebx, eax
 
 	mov		eax, (ACTION PTR [ebx]).pathType
-	.if		eax <= 3
+	.if		eax <= 2
 			lea		esi, (ACTION PTR [ebx]).path
 			invoke	ShellExecute, NULL, addr szOpen, esi, NULL, NULL, SW_SHOW
 	.else
@@ -75,4 +74,35 @@ ExecuteMatch PROC uses eax ecx esi edi,
 
 	ret
 ExecuteMatch ENDP
+
+CopyAction PROC uses eax ecx esi edi,
+	dest: PTR ACTION,
+	src: PTR ACTION
+
+	mov		esi, src
+	mov		edi, dest
+
+	mov		eax, (ACTION PTR [esi]).len
+	mov		(ACTION PTR [edi]).len, eax
+	mov		eax, (ACTION PTR [esi]).pathType
+	mov		(ACTION PTR [edi]).pathType, eax
+
+	invoke	lstrcpy, addr (ACTION PTR [edi]).path, addr (ACTION PTR [esi]).path
+	invoke	lstrcpy, addr (ACTION PTR [edi]).tip, addr (ACTION PTR [esi]).tip
+
+	mov		ecx, 0
+	lea		ebx, (ACTION PTR [esi]).seq
+	lea		edx, (ACTION PTR [edi]).seq
+	mov		edi, (ACTION PTR [esi]).len
+	.while	ecx < edi
+		mov		eax, [ebx]
+		mov		[edx], eax
+		add		ebx, TYPE DWORD
+		add		edx, TYPE DWORD
+		inc		ecx
+	.endw
+
+	ret
+CopyAction ENDP
+
 END

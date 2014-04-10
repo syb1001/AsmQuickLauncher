@@ -7,18 +7,14 @@ include Declaration.inc
 .const
 szOpen			db		'open', 0
 szFileFilter	db		'All Files(*.*)', 0 , '*.*', 0, 0
-szTextTest		db		'≤‚ ‘“ªœ¬', 0
 
 .data
-szCurrentPath		db		MAX_PATH DUP (?)
-szCurrentTip		db		1024 DUP (?)
-szCurrentType		db		?
-
-actionAddress		dd		?
-currentType			dd		0
+tempActionEdit		ACTION	<>
+arrowStringEdit		db		128 DUP(?)
+tempPathEdit		db		MAX_PATH DUP(?)
 
 .code
-_ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
+_ProcEditDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 	LOCAL	@ofn:		OPENFILENAME,
 			@bi:		BROWSEINFO,
 			@lpidlist:	DWORD,
@@ -41,15 +37,13 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 				inc		eax
 			.endw
 
+			invoke	CopyAction, offset tempActionEdit, offset actionMap
+
 			invoke	SendDlgItemMessage, hWnd, IDC_GestureList, CB_SETCURSEL, 0, 0
-			invoke	SetDlgItemText, hWnd, IDC_GestureHint, addr (ACTION PTR actionMap).tip
-			invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR actionMap).path
-			mov		eax, (ACTION PTR actionMap).pathType
-			mov		currentType, eax
-			invoke	GetArrowSeq, addr (ACTION PTR actionMap).seq, (ACTION PTR actionMap).len
-			invoke	SetDlgItemText, hWnd, IDC_GestureSequence, offset arrowSeq
-			lea		eax, actionMap
-			mov		actionAddress, eax
+			invoke	SetDlgItemText, hWnd, IDC_GestureHint, addr (ACTION PTR tempActionEdit).tip
+			invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR tempActionEdit).path
+			invoke	GetArrowSeq, addr (ACTION PTR tempActionEdit).seq, (ACTION PTR tempActionEdit).len, offset arrowStringEdit
+			invoke	SetDlgItemText, hWnd, IDC_GestureSequence, offset arrowStringEdit
 	.elseif	eax == WM_CLOSE
 			invoke	EndDialog, hWnd, 0
 	.elseif	eax == WM_COMMAND
@@ -63,11 +57,11 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 					mul		edx
 					lea		ebx, actionMap
 					add		ebx, eax
+
+					invoke	GetDlgItemText, hWnd, IDC_GestureHint, offset tempActionEdit.tip, 1024
 					; update actionMap
-					invoke	GetDlgItemText, hWnd, IDC_GestureHint, addr (ACTION PTR [ebx]).tip, 1024
-					invoke	GetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR [ebx]).path, 1024
-					mov		eax, currentType
-					mov		(ACTION PTR [ebx]).pathType, eax
+					invoke	CopyAction, ebx, offset tempActionEdit
+
 					invoke	EndDialog, hWnd, 1
 			.elseif	ax == IDCANCEL
 					invoke	EndDialog, hWnd, 0
@@ -78,20 +72,21 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 					push	hWnd
 					pop		@ofn.hwndOwner
 					mov		@ofn.lpstrFilter, offset szFileFilter
-					mov		@ofn.lpstrFile, offset szCurrentPath
+					mov		@ofn.lpstrFile, offset tempPathEdit
 					mov		@ofn.nMaxFile, MAX_PATH 
 					mov		@ofn.Flags, OFN_FILEMUSTEXIST or OFN_PATHMUSTEXIST
 					invoke	GetOpenFileName, addr @ofn
 					.if	eax
-						mov		currentType, 0
-						invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr szCurrentPath
+						mov		tempActionEdit.pathType, 0
+						invoke	lstrcpy, offset tempActionEdit.path, offset tempPathEdit
+						invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr tempActionEdit.path
 					.endif
 			; browse a directory
 			.elseif ax == IDC_ChooseDirectory
 					invoke	RtlZeroMemory, addr @bi, sizeof @bi
 					push	hWnd
 					pop		@bi.hwndOwner
-					mov		@bi.pszDisplayName, offset szCurrentPath
+					mov		@bi.pszDisplayName, offset tempPathEdit
 					or		@bi.ulFlags, BIF_USENEWUI
 					; disable the function to browse virtual path
 					; waiting for better solution
@@ -103,14 +98,15 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 						; the returned eax contains a ItemIdList
 						mov		@lpidlist, eax
 						; if not chose a file path, the function will fail
-						invoke SHGetPathFromIDList, @lpidlist, offset szCurrentPath
+						invoke SHGetPathFromIDList, @lpidlist, offset tempActionEdit.path
 						.if !eax
-							mov		currentType, 3
+							; this if branch is currently disabled
+							mov		tempActionEdit.pathType, 3
 							; unsuccessful getting the path, indicates that we choose a vitual path
 							; so will use ShellExecuteEx to open the vitual path
 
 							;invoke	SHGetSpecialFolderLocation, NULL, CSIDL_DRIVES, addr @lpidlist
-							;invoke	SHGetSpecialFolderPath, NULL, offset szCurrentPath, CSIDL_DRIVES, FALSE
+							;invoke	SHGetSpecialFolderPath, NULL, offset tempActionEdit.path, CSIDL_DRIVES, FALSE
 							invoke	RtlZeroMemory, addr @sei, sizeof @sei
 							mov		@sei.cbSize, sizeof @sei
 							mov		@sei.fMask, SEE_MASK_IDLIST
@@ -121,26 +117,30 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 							; save the virtual path somewhere
 							;invoke	ShellExecuteEx, addr @sei
 						.else
-							mov		currentType, 1
+							mov		tempActionEdit.pathType, 1
 							; browse a normal file, change the path text and open it
-							invoke SetDlgItemText, hWnd, IDC_GesturePath, addr szCurrentPath
+							invoke SetDlgItemText, hWnd, IDC_GesturePath, addr tempActionEdit.path
 						.endif
 					.endif
 			; input the path directly
 			.elseif	ax == IDC_EnterPath
 				; another modal dialog
+				lea		eax, tempActionEdit
+				mov		actionAddressInputBox, eax
 				invoke	DialogBoxParam, hInstance, IDD_InputBox, hWnd, offset _ProcInputBoxMain, NULL
 				.if	eax == 1
-					mov		currentType, 2
-					mov		ebx, actionAddress
-					invoke SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR [ebx]).path
+					mov		tempActionEdit.pathType, 2
+					invoke SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR tempActionEdit).path
 				.endif
 			; edit the gesture sequence
 			.elseif ax == IDC_EditGesture
 				; third modal dialog
+				lea		eax, tempActionEdit
+				mov		actionAddressDirBox, eax
 				invoke	DialogBoxParam, hInstance, IDD_DirBox, hWnd, offset _ProcDirBoxMain, NULL
 				.if	eax == 1
-					invoke	SetDlgItemText, hWnd, IDC_GestureSequence, offset arrowString
+					invoke	GetArrowSeq, addr (ACTION PTR tempActionEdit).seq, (ACTION PTR tempActionEdit).len, offset arrowStringEdit
+					invoke	SetDlgItemText, hWnd, IDC_GestureSequence, offset arrowStringEdit
 				.endif
 			.elseif	ax == IDC_GestureList
 				; process message of combo box here
@@ -151,11 +151,13 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 					mul		edx
 					lea		ebx, actionMap
 					add		ebx, eax
-					mov		actionAddress, ebx
-					invoke	SetDlgItemText, hWnd, IDC_GestureHint, addr (ACTION PTR [ebx]).tip
-					invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR [ebx]).path
-					invoke	GetArrowSeq, addr (ACTION PTR [ebx]).seq, (ACTION PTR [ebx]).len
-					invoke	SetDlgItemText, hWnd, IDC_GestureSequence, offset arrowSeq
+
+					invoke	CopyAction, offset tempActionEdit, ebx
+
+					invoke	SetDlgItemText, hWnd, IDC_GestureHint, addr (ACTION PTR tempActionEdit).tip
+					invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR tempActionEdit).path
+					invoke	GetArrowSeq, addr (ACTION PTR tempActionEdit).seq, (ACTION PTR tempActionEdit).len, offset arrowStringEdit
+					invoke	SetDlgItemText, hWnd, IDC_GestureSequence, offset arrowStringEdit
 				.endif
 			.endif
 	.else
@@ -166,5 +168,5 @@ _ProcDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 	mov		eax, TRUE
 	ret
 
-_ProcDlgMain ENDP
+_ProcEditDlgMain ENDP
 END

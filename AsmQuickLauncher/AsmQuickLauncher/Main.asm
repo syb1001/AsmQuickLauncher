@@ -10,6 +10,8 @@ include Declaration.inc
 szClassName		db	'MyClass',0
 szCaptionMain	db	'Asm Quick Launcher',0
 szText			db	'Drag Your Mouse Here',0
+szCaptionNew	db	'添加新手势？', 0
+szTextNew		db	'当前手势不匹配，是否添加为新的手势？', 0
 
 .data
 ;================Variables=================
@@ -85,8 +87,23 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 			mov al, 0
 			mov isLButtonDown, al
 
-		   	; @wxc call shellExecute here		
-			invoke	ExecuteMatch, bestMatch
+			; call ShellExecute
+			.if	bestMatch == -1
+				.if	capturingNew == TRUE
+					; open dialog to get new gesture info
+					invoke	DialogBoxParam, hInstance, IDD_NewDialog, hWinMain, offset _ProcNewDlgMain, NULL
+				.else
+					; inquire whether to add new action
+					invoke	MessageBox, hWnd, offset szTextNew, offset szCaptionNew, MB_YESNO
+					.if	eax == IDYES
+						; open dialog to get new gesture info
+						invoke	DialogBoxParam, hInstance, IDD_NewDialog, hWinMain, offset _ProcNewDlgMain, NULL
+					.endif
+				.endif
+			.else
+				; execute the action
+				invoke	ExecuteMatch, bestMatch
+			.endif
 
 			invoke InitializeTrack			;  clear all for new track 
 			
