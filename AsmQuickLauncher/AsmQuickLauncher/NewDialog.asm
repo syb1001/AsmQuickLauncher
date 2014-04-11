@@ -14,6 +14,7 @@ szWarningCap	db		'添加失败', 0
 szTipWarning	db		'请填写手势提示文字！', 0
 szPathWarning	db		'请选择启动项！', 0
 szSeqWarning	db		'请编辑手势序列！', 0
+szArrowFont		db		'微软雅黑', 0
 
 .data
 ; temp ACTION struct for recording the user's setting
@@ -29,12 +30,19 @@ _ProcNewDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 	LOCAL	@ofn:		OPENFILENAME,
 			@bi:		BROWSEINFO,
 			@lpidlist:	DWORD,
-			@sei:		SHELLEXECUTEINFO
+			@sei:		SHELLEXECUTEINFO,
+			@hFont:		DWORD
 
 	mov		eax, wMsg
 ;================================================================================================================
 	.if		eax == WM_INITDIALOG
 			; init the dialog controls here
+
+			; set the font of gesture arrow sequence
+			invoke	CreateFont, 23, 0, 0, 0, FW_BOLD, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, 0, offset szArrowFont
+			mov		@hFont, eax
+			invoke	GetDlgItem, hWnd, IDC_GestureSequence
+			invoke	SendMessage, eax, WM_SETFONT, @hFont, TRUE
 
 			; initialize temp action
 			invoke	RtlZeroMemory, offset tempActionNew, TYPE ACTION
