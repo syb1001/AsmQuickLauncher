@@ -2,6 +2,10 @@
 .model flat, stdcall
 option casemap:none
 
+; Dialog for editing gestures
+; when no gesture exists, this dialog can
+; also be used for add new gesture
+
 include Declaration.inc
 
 .const
@@ -15,9 +19,14 @@ szButtonAdd		db		'Ìí¼Ó', 0
 szButtonClose	db		'¹Ø±Õ', 0
 
 .data
+; the temp ACTION struct for recording user's modification
+; when OK button clicked, it's assigned to actionMap
 tempActionEdit		ACTION	<>
+; temp arrow string
 arrowStringEdit		db		128 DUP(?)
+; temp string for path
 tempPathEdit		db		MAX_PATH DUP(?)
+; temp string for tip
 tempTipEdit			db		1024 DUP(?)
 
 .code
@@ -31,6 +40,9 @@ _ProcEditDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 	mov		eax, wMsg
 ;================================================================================================================
 	.if		eax == WM_INITDIALOG
+			
+			invoke	GetDlgItem, hWnd, IDC_GestureSequence
+			invoke	EnableWindow, eax, FALSE
 
 			; initialize temp action
 			invoke	RtlZeroMemory, offset tempActionEdit, TYPE ACTION
@@ -70,10 +82,11 @@ _ProcEditDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 ;================================================================================================================
 	.elseif	eax == WM_COMMAND
 			mov		eax, wParam
+;
+; Processss OK button message
+; update an item in the actionMap
 ;----------------------------------------------------------------------------------------------------------------
 			.if		ax == IDOK
-					; press ok button
-					; update this item in the actionMap
 
 					;------------------------------validation check------------------------------
 					invoke	GetDlgItemText, hWnd, IDC_GestureHint, offset tempTipEdit, 1024
@@ -112,11 +125,14 @@ _ProcEditDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 					.endif
 
 					invoke	EndDialog, hWnd, 1
+;
+; Cancel button clicked
 ;----------------------------------------------------------------------------------------------------------------
 			.elseif	ax == IDCANCEL
 					invoke	EndDialog, hWnd, 0
+;
+; Browse a file
 ;----------------------------------------------------------------------------------------------------------------
-			; browse a file
 			.elseif ax == IDC_ChooseFile
 					invoke	RtlZeroMemory, addr @ofn, sizeof @ofn
 					mov		@ofn.lStructSize, sizeof @ofn
@@ -132,8 +148,10 @@ _ProcEditDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 						invoke	lstrcpy, offset tempActionEdit.path, offset tempPathEdit
 						invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr tempActionEdit.path
 					.endif
+;
+; Browse a directory
+; Virtual path is not implemented
 ;----------------------------------------------------------------------------------------------------------------
-			; browse a directory
 			.elseif ax == IDC_ChooseDirectory
 					invoke	RtlZeroMemory, addr @bi, sizeof @bi
 					push	hWnd
@@ -174,10 +192,10 @@ _ProcEditDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 							invoke SetDlgItemText, hWnd, IDC_GesturePath, addr tempActionEdit.path
 						.endif
 					.endif
+;
+; Input the path directly
 ;----------------------------------------------------------------------------------------------------------------
-			; input the path directly
 			.elseif	ax == IDC_EnterPath
-				; another modal dialog
 				lea		eax, tempActionEdit
 				mov		actionAddressInputBox, eax
 				invoke	DialogBoxParam, hInstance, IDD_InputBox, hWnd, offset _ProcInputBoxMain, NULL
@@ -185,9 +203,10 @@ _ProcEditDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 					mov		tempActionEdit.pathType, 2
 					invoke SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR tempActionEdit).path
 				.endif
-			; edit the gesture sequence
+;
+; Edit the gesture sequence
+;----------------------------------------------------------------------------------------------------------------
 			.elseif ax == IDC_EditGesture
-				; third modal dialog
 				lea		eax, tempActionEdit
 				mov		actionAddressDirBox, eax
 				invoke	DialogBoxParam, hInstance, IDD_DirBox, hWnd, offset _ProcDirBoxMain, NULL
@@ -195,6 +214,8 @@ _ProcEditDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 					invoke	GetArrowSeq, addr (ACTION PTR tempActionEdit).seq, (ACTION PTR tempActionEdit).len, offset arrowStringEdit
 					invoke	SetDlgItemText, hWnd, IDC_GestureSequence, offset arrowStringEdit
 				.endif
+;
+; Delete an action
 ;----------------------------------------------------------------------------------------------------------------
 			.elseif	ax == IDC_DeleteGesture
 				.if		actionLen == 0
@@ -237,9 +258,10 @@ _ProcEditDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 				invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR tempActionEdit).path
 				invoke	GetArrowSeq, addr (ACTION PTR tempActionEdit).seq, (ACTION PTR tempActionEdit).len, offset arrowStringEdit
 				invoke	SetDlgItemText, hWnd, IDC_GestureSequence, offset arrowStringEdit
+;
+; Process message of combo box
 ;----------------------------------------------------------------------------------------------------------------
 			.elseif	ax == IDC_GestureList
-				; process message of combo box here
 				shr		eax, 16
 				.if	ax == CBN_SELENDOK
 					invoke	SendDlgItemMessage, hWnd, IDC_GestureList, CB_GETCURSEL, 0, 0
