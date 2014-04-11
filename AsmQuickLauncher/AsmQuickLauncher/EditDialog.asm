@@ -21,7 +21,11 @@ _ProcEditDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 			@sei:		SHELLEXECUTEINFO
 
 	mov		eax, wMsg
+;================================================================================================================
 	.if		eax == WM_INITDIALOG
+			.if actionLen == 0
+				ret
+			.endif
 			; init the dialog controls here
 			mov		eax, 0
 			.while	eax < actionLen
@@ -44,27 +48,42 @@ _ProcEditDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 			invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR tempActionEdit).path
 			invoke	GetArrowSeq, addr (ACTION PTR tempActionEdit).seq, (ACTION PTR tempActionEdit).len, offset arrowStringEdit
 			invoke	SetDlgItemText, hWnd, IDC_GestureSequence, offset arrowStringEdit
+;================================================================================================================
 	.elseif	eax == WM_CLOSE
 			invoke	EndDialog, hWnd, 0
+;================================================================================================================
 	.elseif	eax == WM_COMMAND
 			mov		eax, wParam
+;----------------------------------------------------------------------------------------------------------------
 			.if		ax == IDOK
 					; press ok button
 					; update this item in the actionMap
-					invoke	SendDlgItemMessage, hWnd, IDC_GestureList, CB_GETCURSEL, 0, 0
-					mov		esi, eax
-					mov		edx, TYPE ACTION
-					mul		edx
-					lea		ebx, actionMap
-					add		ebx, eax
 
-					invoke	GetDlgItemText, hWnd, IDC_GestureHint, offset tempActionEdit.tip, 1024
-					; update actionMap
-					invoke	CopyAction, ebx, offset tempActionEdit
+					; actionlen=0, add a new action
+
+					.if		actionLen == 0
+						invoke	GetDlgItemText, hWnd, IDC_GestureHint, offset tempActionEdit.tip, 1024
+
+						invoke	AddNewAction, offset tempActionEdit.seq, tempActionEdit.len, \
+							offset tempActionEdit.path, offset tempActionEdit.tip, tempActionEdit.pathType
+					.else
+						invoke	SendDlgItemMessage, hWnd, IDC_GestureList, CB_GETCURSEL, 0, 0
+						mov		esi, eax
+						mov		edx, TYPE ACTION
+						mul		edx
+						lea		ebx, actionMap
+						add		ebx, eax
+
+						invoke	GetDlgItemText, hWnd, IDC_GestureHint, offset tempActionEdit.tip, 1024
+						; update actionMap
+						invoke	CopyAction, ebx, offset tempActionEdit
+					.endif
 
 					invoke	EndDialog, hWnd, 1
+;----------------------------------------------------------------------------------------------------------------
 			.elseif	ax == IDCANCEL
 					invoke	EndDialog, hWnd, 0
+;----------------------------------------------------------------------------------------------------------------
 			; browse a file
 			.elseif ax == IDC_ChooseFile
 					invoke	RtlZeroMemory, addr @ofn, sizeof @ofn
@@ -81,6 +100,7 @@ _ProcEditDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 						invoke	lstrcpy, offset tempActionEdit.path, offset tempPathEdit
 						invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr tempActionEdit.path
 					.endif
+;----------------------------------------------------------------------------------------------------------------
 			; browse a directory
 			.elseif ax == IDC_ChooseDirectory
 					invoke	RtlZeroMemory, addr @bi, sizeof @bi
@@ -122,6 +142,7 @@ _ProcEditDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 							invoke SetDlgItemText, hWnd, IDC_GesturePath, addr tempActionEdit.path
 						.endif
 					.endif
+;----------------------------------------------------------------------------------------------------------------
 			; input the path directly
 			.elseif	ax == IDC_EnterPath
 				; another modal dialog
@@ -142,6 +163,45 @@ _ProcEditDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 					invoke	GetArrowSeq, addr (ACTION PTR tempActionEdit).seq, (ACTION PTR tempActionEdit).len, offset arrowStringEdit
 					invoke	SetDlgItemText, hWnd, IDC_GestureSequence, offset arrowStringEdit
 				.endif
+;----------------------------------------------------------------------------------------------------------------
+			.elseif	ax == IDC_DeleteGesture
+				.if		actionLen == 0
+					ret
+				.endif
+				; to delete an action, get its index and memory address
+				invoke	SendDlgItemMessage, hWnd, IDC_GestureList, CB_GETCURSEL, 0, 0
+				mov		esi, eax
+				mov		edx, TYPE ACTION
+				mul		edx
+				lea		ebx, actionMap
+				add		ebx, eax
+
+				pushad
+				invoke	DeleteAction, esi, ebx
+				popad
+
+				push	ebx
+				invoke	SendDlgItemMessage, hWnd, IDC_GestureList, CB_DELETESTRING, esi, 0
+				pop		ebx
+
+				; consider the last item deleted
+				.if		esi >= actionLen
+					dec		esi
+					sub		ebx, TYPE ACTION
+				.endif
+				
+				.if		actionLen == 0
+					invoke	RtlZeroMemory, offset tempActionEdit, TYPE ACTION
+				.else
+					invoke	CopyAction,	offset tempActionEdit, ebx
+				.endif
+
+				invoke	SendDlgItemMessage, hWnd, IDC_GestureList, CB_SETCURSEL, esi, 0
+				invoke	SetDlgItemText, hWnd, IDC_GestureHint, addr (ACTION PTR tempActionEdit).tip
+				invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR tempActionEdit).path
+				invoke	GetArrowSeq, addr (ACTION PTR tempActionEdit).seq, (ACTION PTR tempActionEdit).len, offset arrowStringEdit
+				invoke	SetDlgItemText, hWnd, IDC_GestureSequence, offset arrowStringEdit
+;----------------------------------------------------------------------------------------------------------------
 			.elseif	ax == IDC_GestureList
 				; process message of combo box here
 				shr		eax, 16
@@ -160,6 +220,8 @@ _ProcEditDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 					invoke	SetDlgItemText, hWnd, IDC_GestureSequence, offset arrowStringEdit
 				.endif
 			.endif
+;----------------------------------------------------------------------------------------------------------------
+;================================================================================================================
 	.else
 			mov		eax, FALSE
 			ret
