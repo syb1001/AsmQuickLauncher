@@ -54,14 +54,13 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 			invoke	EndPaint,hWnd,addr @stPs
 ;********************************************************************
 		.elseif	eax ==	WM_CREATE
-			mov	eax,hWnd
-			mov	hWinMain,eax
-			invoke RegisterHotKey, hWnd, hWnd, MOD_CONTROL, 051h 	; register hotkey CTRL + SHIFT + Q
+			mov		eax,hWnd
+			mov		hWinMain,eax
+			invoke	RegisterHotKey, hWnd, hWnd, MOD_CONTROL, 051h 	; register hotkey CTRL + Q
 ;********************************************************************
 		.elseif	eax ==	WM_CLOSE
 			invoke	DestroyWindow,hWinMain
 			invoke	PostQuitMessage,NULL
-			;invoke	
 ;********************************************************************
 		.elseif eax == WM_COMMAND
 			mov	eax, wParam
