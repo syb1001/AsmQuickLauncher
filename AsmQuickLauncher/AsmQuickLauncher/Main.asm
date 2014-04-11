@@ -25,6 +25,8 @@ WINDOW_HEIGHT	DWORD	0
 szTooLongStr BYTE 'too long!', 0
 szWarningStr BYTE 'warning', 0
 
+WinHide DWORD 0
+
 .code
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; ´°¿Ú¹ý³Ì
@@ -55,6 +57,7 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 		.elseif	eax ==	WM_CREATE
 			mov	eax,hWnd
 			mov	hWinMain,eax
+			invoke RegisterHotKey, hWnd, hWnd, MOD_CONTROL, 051h 	; register hotkey CTRL + SHIFT + Q
 ;********************************************************************
 		.elseif	eax ==	WM_CLOSE
 			invoke	DestroyWindow,hWinMain
@@ -243,7 +246,21 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 
 			.endif
 
-			
+		.elseif eax == WM_HOTKEY
+
+			.if WinHide == 0
+				invoke ShowWindow, hWinMain, SW_RESTORE
+				invoke Shell_NotifyIcon, NIM_DELETE, ADDR nid
+				invoke SetForegroundWindow, hWnd
+				inc WinHide
+			.elseif 
+				invoke ShowWindow, hWinMain, SW_HIDE
+				invoke Shell_NotifyIcon, NIM_ADD, ADDR nid
+				dec WinHide
+			.endif 
+
+		.elseif eax == WM_DESTROY
+			invoke UnregisterHotKey, hWnd, hWnd	
 		.else
 			invoke	DefWindowProc,hWnd,uMsg,wParam,lParam
 			ret
