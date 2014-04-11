@@ -105,4 +105,27 @@ CopyAction PROC uses eax ecx esi edi,
 	ret
 CopyAction ENDP
 
+DeleteAction PROC uses eax ecx esi edi,
+	index: DWORD,
+	address: PTR ACTION
+
+	.if		actionLen == 0
+		ret
+	.endif
+	dec		actionLen
+
+	mov		ecx, index
+	mov		edi, address
+	mov		esi, address
+	add		esi, TYPE ACTION
+	.while	ecx < actionLen
+		invoke	CopyAction, edi, esi
+		add		esi, TYPE ACTION
+		add		edi, TYPE ACTION
+		inc		ecx
+	.endw
+
+	ret
+DeleteAction ENDP
+
 END
