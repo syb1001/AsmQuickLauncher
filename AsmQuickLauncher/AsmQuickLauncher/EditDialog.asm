@@ -7,11 +7,16 @@ include Declaration.inc
 .const
 szOpen			db		'open', 0
 szFileFilter	db		'All Files(*.*)', 0 , '*.*', 0, 0
+szWarningCap	db		'修改失败', 0
+szTipWarning	db		'请填写手势提示文字！', 0
+szPathWarning	db		'请选择启动项！', 0
+szSeqWarning	db		'请编辑手势序列！', 0
 
 .data
 tempActionEdit		ACTION	<>
 arrowStringEdit		db		128 DUP(?)
 tempPathEdit		db		MAX_PATH DUP(?)
+tempTipEdit			db		1024 DUP(?)
 
 .code
 _ProcEditDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
@@ -23,9 +28,10 @@ _ProcEditDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 	mov		eax, wMsg
 ;================================================================================================================
 	.if		eax == WM_INITDIALOG
-			.if actionLen == 0
-				ret
-			.endif
+
+			; initialize temp action
+			invoke	RtlZeroMemory, offset tempActionEdit, TYPE ACTION
+
 			; init the dialog controls here
 			mov		eax, 0
 			.while	eax < actionLen
@@ -41,7 +47,9 @@ _ProcEditDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 				inc		eax
 			.endw
 
-			invoke	CopyAction, offset tempActionEdit, offset actionMap
+			.if actionLen != 0
+				invoke	CopyAction, offset tempActionEdit, offset actionMap
+			.endif
 
 			invoke	SendDlgItemMessage, hWnd, IDC_GestureList, CB_SETCURSEL, 0, 0
 			invoke	SetDlgItemText, hWnd, IDC_GestureHint, addr (ACTION PTR tempActionEdit).tip
@@ -59,11 +67,28 @@ _ProcEditDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 					; press ok button
 					; update this item in the actionMap
 
-					; actionlen=0, add a new action
+					;------------------------------validation check------------------------------
+					invoke	GetDlgItemText, hWnd, IDC_GestureHint, offset tempTipEdit, 1024
+					invoke	lstrlen, offset tempTipEdit
+					.if		eax == 0
+						invoke	MessageBox, hWnd, offset szTipWarning, offset szWarningCap, MB_OK
+						invoke	SetDlgItemText, hWnd, IDC_GestureHint, offset tempActionEdit.tip
+						ret
+					.endif
+					invoke	lstrlen, offset tempActionEdit.path
+					.if		eax == 0
+						invoke	MessageBox, hWnd, offset szPathWarning, offset szWarningCap, MB_OK
+						ret
+					.endif
+					.if		tempActionEdit.len == 0
+						invoke	MessageBox, hWnd, offset szSeqWarning, offset szWarningCap, MB_OK
+						ret
+					.endif
+					;----------------------------------------------------------------------------
 
+					invoke	GetDlgItemText, hWnd, IDC_GestureHint, offset tempActionEdit.tip, 1024
 					.if		actionLen == 0
-						invoke	GetDlgItemText, hWnd, IDC_GestureHint, offset tempActionEdit.tip, 1024
-
+						; actionLen=0, add a new action
 						invoke	AddNewAction, offset tempActionEdit.seq, tempActionEdit.len, \
 							offset tempActionEdit.path, offset tempActionEdit.tip, tempActionEdit.pathType
 					.else
@@ -74,7 +99,6 @@ _ProcEditDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 						lea		ebx, actionMap
 						add		ebx, eax
 
-						invoke	GetDlgItemText, hWnd, IDC_GestureHint, offset tempActionEdit.tip, 1024
 						; update actionMap
 						invoke	CopyAction, ebx, offset tempActionEdit
 					.endif
