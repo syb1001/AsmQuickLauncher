@@ -79,6 +79,9 @@ DrawLine PROTO,
 CreateBitMap PROTO, 
 	_hDc: DWORD
 
+ToTray PROTO
+IconRightButtonDown PROTO
+
 ;---------------UI-----------------
 ProcessMenuEvents PROTO,
 	evt: DWORD
@@ -149,6 +152,7 @@ externdef	hMenu:		DWORD ; handler of main menu
 ;-------------windows-------------
 externdef	WINDOW_WIDTH:	DWORD
 externdef	WINDOW_HEIGHT:	DWORD
+externdef	nid:			NOTIFYICONDATA
 
 ;-------------dialog---------------
 externdef	actionAddress:	DWORD
@@ -176,6 +180,9 @@ IDR_MainMenu		equ		101
 ID_MenuExit			equ		40001
 ID_MenuEnable		equ		40002
 ID_MenuEdit			equ		40003
+
+IDM_SHOW			equ		301
+IDM_EXIT			equ		302
 ;--------dialog resources----------
 IDD_EditDialog		equ		102
 IDC_GestureList		equ		1001
@@ -206,6 +213,8 @@ IDB_BOTTOMLEFT		equ		205
 IDB_BOTTOMRIGHT		equ		206
 IDB_BOTTOMUP		equ		207
 IDB_BOTTOMDOWN		equ		208
+;-------------icons----------------
+IDI_TRAY			equ		105
 
 ;---------bmp attribute-------------
 BMP_BOTTOM_SIZE			equ		25
@@ -215,6 +224,9 @@ BMP_LEFTUPCORNER_SIZE	equ		50
 ;---------window attribute-----------
 ;WINDOW_WIDTH	equ 600
 ;WINDOW_HEIGHT	equ 400
+
+;------------------------------------
+RECOGNIZE_DISTANCE	equ 20
 ;----------------------------------
 ;==================================
 

@@ -39,6 +39,7 @@
     <Image Include="Down.bmp" />
     <Image Include="Left.bmp" />
     <Image Include="Right.bmp" />
+    <Image Include="Tray.ico" />
     <Image Include="Up.bmp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

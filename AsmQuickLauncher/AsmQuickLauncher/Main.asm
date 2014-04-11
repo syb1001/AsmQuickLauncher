@@ -43,6 +43,7 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 ;********************************************************************
 		.if	eax ==	WM_PAINT
 			invoke	BeginPaint,hWnd,addr @stPs
+			;更新窗口高度和宽度参数
 			mov	@hDc,eax
 			mov	ecx,@stPs.rcPaint.right
 			sub	ecx,@stPs.rcPaint.left
@@ -50,6 +51,7 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 			mov	ecx,@stPs.rcPaint.bottom
 			sub	ecx,@stPs.rcPaint.top
 			mov WINDOW_HEIGHT, ecx
+
 			invoke CreateBitMap, @hDc
 			invoke	EndPaint,hWnd,addr @stPs
 ;********************************************************************
@@ -60,11 +62,21 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 		.elseif	eax ==	WM_CLOSE
 			invoke	DestroyWindow,hWinMain
 			invoke	PostQuitMessage,NULL
+			;invoke	
 ;********************************************************************
 		.elseif eax == WM_COMMAND
 			mov	eax, wParam
 			movzx	eax, ax
-			invoke	ProcessMenuEvents, eax
+			.if ax == IDM_EXIT
+				invoke Shell_NotifyIcon, NIM_DELETE, ADDR nid
+				invoke	DestroyWindow,hWinMain
+				invoke	PostQuitMessage,NULL
+			.elseif ax == IDM_SHOW
+				invoke ShowWindow, hWinMain, SW_RESTORE
+				invoke Shell_NotifyIcon, NIM_DELETE, ADDR nid
+			.else
+				invoke	ProcessMenuEvents, eax
+			.endif
 ;********************************************************************
 		.elseif eax == WM_LBUTTONDOWN
 			;给判断方向的点列赋初始值
@@ -142,7 +154,7 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 					sub ebx, @coord_y
 				.endif
 
-				.if ebx > 30
+				.if ebx > RECOGNIZE_DISTANCE
 					;更新最近的有效点
 					mov esi, @coord_x
 					mov (POINT PTR [edi]).x, esi
@@ -180,6 +192,21 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 
 			.endif
 			invoke	InvalidateRect,hWnd,NULL,0
+		.elseif eax == WM_SYSCOMMAND && wParam == SC_MINIMIZE
+			invoke ToTray
+		.elseif eax == WM_USER
+			.if lParam == WM_LBUTTONDBLCLK
+				invoke ShowWindow, hWinMain, SW_RESTORE
+				invoke Shell_NotifyIcon, NIM_DELETE, ADDR nid
+			.endif
+
+			.if lParam == WM_RBUTTONDOWN
+
+				invoke IconRightButtonDown
+
+			.endif
+
+			
 		.else
 			invoke	DefWindowProc,hWnd,uMsg,wParam,lParam
 			ret
@@ -220,8 +247,8 @@ _WinMain	proc
 ;********************************************************************
 ; 建立并显示窗口
 ;********************************************************************
-		mov WINDOW_WIDTH, 1200
-		mov WINDOW_HEIGHT, 800
+		mov WINDOW_WIDTH, 400
+		mov WINDOW_HEIGHT, 400
 		invoke	CreateWindowEx,WS_EX_CLIENTEDGE,offset szClassName,offset szCaptionMain,\
 			WS_OVERLAPPEDWINDOW,\
 			100,100,WINDOW_WIDTH,WINDOW_HEIGHT,\

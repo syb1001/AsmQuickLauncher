@@ -6,11 +6,11 @@ include Declaration.inc
 
 .data
 ;--------------Mouse Track------------------------------------------------
-trackPoint POINT 1024 DUP(<>) 	; Mouse track Point
+trackPoint POINT 2048 DUP(<>) 	; Mouse track Point
 trackLength DWORD 0 				; number of mouse track points
-drawPoint POINT 1024 DUP(<>)
+drawPoint POINT 2048 DUP(<>)
 drawLength DWORD 0
-trackSeq DWORD 1024 DUP(0)		; store track direction 
+trackSeq DWORD 2048 DUP(0)		; store track direction 
 seqLength DWORD 0					; number of directions
 ;--------------------------------------------------------------------------
 train DWORD 0
