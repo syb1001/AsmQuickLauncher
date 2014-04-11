@@ -22,6 +22,11 @@ isRButtonDown	BYTE	0
 WINDOW_WIDTH	DWORD	0
 WINDOW_HEIGHT	DWORD	0
 		
+szTooLongStr BYTE 'too long!', 0
+szWarningStr BYTE 'warning', 0
+
+WinHide DWORD 0
+
 .code
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; ´°¿Ú¹ý³Ì
@@ -51,6 +56,7 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 		.elseif	eax ==	WM_CREATE
 			mov	eax,hWnd
 			mov	hWinMain,eax
+			invoke RegisterHotKey, hWnd, hWnd, MOD_CONTROL, 051h 	; register hotkey CTRL + SHIFT + Q
 ;********************************************************************
 		.elseif	eax ==	WM_CLOSE
 			invoke	DestroyWindow,hWinMain
@@ -161,10 +167,16 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 				.endif
 
 				;invoke RecognizeTrack			; recognize the gesture
-
+				
 				.if drawLength == 1024
 					mov al, 0
 					mov isLButtonDown, al
+					mov trackTooLong, 1
+				.endif 
+
+				.if trackTooLong > 0 
+					invoke MessageBox, 0, addr szTooLongStr, addr szWarningStr, 0
+					ret 
 				.endif 
 
 				.if drawLength >20
@@ -178,6 +190,9 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 
 			.endif
 			invoke	InvalidateRect,hWnd,NULL,0
+
+			
+
 		.elseif eax == WM_SYSCOMMAND && wParam == SC_MINIMIZE
 			invoke ToTray
 		.elseif eax == WM_USER
@@ -192,7 +207,21 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 
 			.endif
 
-			
+		.elseif eax == WM_HOTKEY
+
+			.if WinHide == 0
+				invoke ShowWindow, hWinMain, SW_RESTORE
+				invoke Shell_NotifyIcon, NIM_DELETE, ADDR nid
+				invoke SetForegroundWindow, hWnd
+				inc WinHide
+			.elseif 
+				invoke ShowWindow, hWinMain, SW_HIDE
+				invoke Shell_NotifyIcon, NIM_ADD, ADDR nid
+				dec WinHide
+			.endif 
+
+		.elseif eax == WM_DESTROY
+			invoke UnregisterHotKey, hWnd, hWnd	
 		.else
 			invoke	DefWindowProc,hWnd,uMsg,wParam,lParam
 			ret
@@ -213,6 +242,8 @@ _WinMain	proc
 		invoke	GetModuleHandle,NULL
 		mov	hInstance,eax
 
+		; load icon 
+		invoke 	LoadIconBitmap
 		; load the main menu
 		invoke	LoadMenu, hInstance, IDR_MainMenu
 		mov		hMenu, eax

@@ -63,6 +63,10 @@ CopyAction PROTO,
 	dest: PTR ACTION,
 	src: PTR ACTION
 
+DeleteAction PROTO,
+	index: DWORD,
+	address: PTR ACTION
+
 ;-------------Action---------------
 AddNewAction PROTO,
 	seq: PTR DWORD,
@@ -72,6 +76,7 @@ AddNewAction PROTO,
 	pathType: DWORD
 	
 GetTipOfBestMatch PROTO
+
 ;-------------DEBUG----------------
 MessageBoxDwordArr PROTO,
 	pArr: PTR DWORD,
@@ -89,6 +94,7 @@ CreateBitMap PROTO,
 
 ToTray PROTO
 IconRightButtonDown PROTO
+LoadIconBitmap PROTO
 
 LeftButtonDownProc PROTO,
 	lParam:DWORD
@@ -153,7 +159,7 @@ externdef actionLen: DWORD
 
 ;---------- recognize ------------
 externdef bestMatch: SDWORD
-
+externdef trackTooLong: DWORD 
 ;---------- arrow ----------------
 externdef upArrow: BYTE
 externdef downArrow: BYTE
@@ -168,6 +174,7 @@ externdef	hIconMenu:	DWORD
 ;--------------dialog--------------
 externdef	actionAddressInputBox:	DWORD
 externdef	actionAddressDirBox:	DWORD
+
 ;-----------functional-------------
 externdef	functionEnabled:	BYTE
 externdef	capturingNew:		BYTE
@@ -218,6 +225,7 @@ IDC_ChooseDirectory	equ		1010
 IDC_EnterPath		equ		1012
 IDC_EditGesture		equ		1011
 IDC_GestureSequence	equ		1013
+IDC_DeleteGesture	equ		1021
 ;-----------new dialog-------------
 IDD_NewDialog		equ		105
 ;-----------input box--------------

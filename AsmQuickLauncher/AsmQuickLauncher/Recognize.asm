@@ -239,7 +239,6 @@ RecognizeTrack PROC uses ecx edx esi edi ebx
 		 
 	.ENDIF
 	;-------------------------------------------------
-
 	ret
 
 RecognizeTrack ENDP
@@ -457,6 +456,7 @@ InitializeTrack PROC
 	mov trackLength, 0
 	mov drawLength, 0
 	mov seqLength, 0
+	mov trackTooLong, 0
 
 	;--------------------------------
 	; clear prefixMatchArray

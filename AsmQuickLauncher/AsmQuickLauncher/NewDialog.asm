@@ -2,15 +2,26 @@
 .model flat, stdcall
 option casemap:none
 
+; A dialog for add new gesture
+; created when capturing gestures
+
 include Declaration.inc
 
 .const
 szOpen			db		'open', 0
 szFileFilter	db		'All Files(*.*)', 0 , '*.*', 0, 0
+szWarningCap	db		'添加失败', 0
+szTipWarning	db		'请填写手势提示文字！', 0
+szPathWarning	db		'请选择启动项！', 0
+szSeqWarning	db		'请编辑手势序列！', 0
 
 .data
+; temp ACTION struct for recording the user's setting
+; when OK clicked, it is assigned to an element of actionMap
 tempActionNew		ACTION	<>
+; temp string for arrow
 arrowStringNew		db		128 DUP(?)
+; temp string for path
 tempPathNew		db		MAX_PATH DUP(?)
 
 .code
@@ -21,8 +32,12 @@ _ProcNewDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 			@sei:		SHELLEXECUTEINFO
 
 	mov		eax, wMsg
+;================================================================================================================
 	.if		eax == WM_INITDIALOG
 			; init the dialog controls here
+
+			; initialize temp action
+			invoke	RtlZeroMemory, offset tempActionNew, TYPE ACTION
 
 			mov		ecx, 0
 			lea		esi, trackSeq
@@ -41,22 +56,48 @@ _ProcNewDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 			invoke	SetDlgItemText, hWnd, IDC_GesturePath, 0
 			invoke	GetArrowSeq, addr trackSeq, seqLength, offset arrowStringNew
 			invoke	SetDlgItemText, hWnd, IDC_GestureSequence, offset arrowStringNew
+;================================================================================================================
 	.elseif	eax == WM_CLOSE
 			invoke	EndDialog, hWnd, 0
+;================================================================================================================
 	.elseif	eax == WM_COMMAND
 			mov		eax, wParam
+;
+; Processss OK button message
+; add an item in the actionMap
+;----------------------------------------------------------------------------------------------------------------
 			.if		ax == IDOK
-					; press ok button
-					; update this item in the actionMap
+					;------------------------------validation check------------------------------
 					invoke	GetDlgItemText, hWnd, IDC_GestureHint, offset tempActionNew.tip, 1024
+					invoke	lstrlen, offset tempActionNew.tip
+					.if		eax == 0
+						invoke	MessageBox, hWnd, offset szTipWarning, offset szWarningCap, MB_OK
+						invoke	SetDlgItemText, hWnd, IDC_GestureHint, offset tempActionNew.tip
+						ret
+					.endif
+					invoke	lstrlen, offset tempActionNew.path
+					.if		eax == 0
+						invoke	MessageBox, hWnd, offset szPathWarning, offset szWarningCap, MB_OK
+						ret
+					.endif
+					.if		tempActionNew.len == 0
+						invoke	MessageBox, hWnd, offset szSeqWarning, offset szWarningCap, MB_OK
+						ret
+					.endif
+					;----------------------------------------------------------------------------
 
 					invoke	AddNewAction, offset tempActionNew.seq, tempActionNew.len, \
 						offset tempActionNew.path, offset tempActionNew.tip, tempActionNew.pathType
 
 					invoke	EndDialog, hWnd, 1
+;
+; Cancel button clicked
+;----------------------------------------------------------------------------------------------------------------
 			.elseif	ax == IDCANCEL
 					invoke	EndDialog, hWnd, 0
-			; browse a file
+;
+; Browse a file
+;----------------------------------------------------------------------------------------------------------------
 			.elseif ax == IDC_ChooseFile
 					invoke	RtlZeroMemory, addr @ofn, sizeof @ofn
 					mov		@ofn.lStructSize, sizeof @ofn
@@ -72,7 +113,10 @@ _ProcNewDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 						invoke	lstrcpy, offset tempActionNew.path, offset tempPathNew
 						invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr tempActionNew.path
 					.endif
-			; browse a directory
+;
+; Browse a directory
+; Virtual path is not implemented
+;----------------------------------------------------------------------------------------------------------------
 			.elseif ax == IDC_ChooseDirectory
 					invoke	RtlZeroMemory, addr @bi, sizeof @bi
 					push	hWnd
@@ -113,7 +157,9 @@ _ProcNewDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 							invoke SetDlgItemText, hWnd, IDC_GesturePath, addr tempActionNew.path
 						.endif
 					.endif
-			; input the path directly
+;
+; Input the path directly
+;----------------------------------------------------------------------------------------------------------------
 			.elseif	ax == IDC_EnterPath
 				; another modal dialog
 				lea		eax, tempActionNew
@@ -123,7 +169,9 @@ _ProcNewDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 					mov		tempActionNew.pathType, 2
 					invoke	SetDlgItemText, hWnd, IDC_GesturePath, addr (ACTION PTR tempActionNew).path
 				.endif
-			; edit the gesture sequence
+;
+; Edit the gesture sequence
+;----------------------------------------------------------------------------------------------------------------
 			.elseif ax == IDC_EditGesture
 				; third modal dialog
 				lea		eax, tempActionNew
@@ -134,6 +182,8 @@ _ProcNewDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 					invoke	SetDlgItemText, hWnd, IDC_GestureSequence, offset arrowStringNew
 				.endif
 			.endif
+;----------------------------------------------------------------------------------------------------------------
+;================================================================================================================
 	.else
 			mov		eax, FALSE
 			ret

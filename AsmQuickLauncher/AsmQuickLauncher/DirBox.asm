@@ -2,13 +2,31 @@
 .model flat, stdcall
 option casemap:none
 
+; A dialog to get an arrow sequence
+; Use arrow sequence to define a mouse gesture
+
 include Declaration.inc
 
+; when an arrow button is clicked
+; it will be disabled
+; the previous button in the sequence is enabled
+EnablePreviousButton PROTO,
+	hWnd: DWORD
+
 .data
-dirSeq					dd		32 DUP(0)
-dirLen					dd		0
+; the return address of this dialog
+; global variable, initialized just before the dialog is created
 actionAddressDirBox		dd		?
+
+; the temp string used for storing arrow string
 arrowStringDirBox		db		128 DUP(?)
+
+; record the 0123 sequence indicates arrow sequence
+; when OK button is clicked, assign this sequence to actionAddressDirBox
+dirSeq					dd		32 DUP(0)
+
+; length of dirSeq
+dirLen					dd		0
 
 .const
 szError		db		'错误', 0
@@ -18,6 +36,7 @@ szWarning	db		'手势序列长度不能为0！', 0
 _ProcDirBoxMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 
 	mov		eax, wMsg
+;================================================================================================================
 	.if		eax == WM_INITDIALOG
 			mov		ebx, actionAddressDirBox
 			; convert 0123 sequence to dir sequence
@@ -39,10 +58,32 @@ _ProcDirBoxMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 				add		edi, TYPE DWORD
 				inc		ecx
 			.endw
+			; set button status
+			.if		dirLen != 0
+				mov		eax, dirLen
+				dec		eax
+				mov		edx, dirSeq[eax * TYPE DWORD]
+				.if		edx == 0
+					invoke	GetDlgItem, hWnd, IDC_Up
+					invoke	EnableWindow, eax, FALSE
+				.elseif	edx == 1
+					invoke	GetDlgItem, hWnd, IDC_Right
+					invoke	EnableWindow, eax, FALSE
+				.elseif	edx == 2
+					invoke	GetDlgItem, hWnd, IDC_Down
+					invoke	EnableWindow, eax, FALSE
+				.else
+					invoke	GetDlgItem, hWnd, IDC_Left
+					invoke	EnableWindow, eax, FALSE
+				.endif
+			.endif
+;================================================================================================================
 	.elseif	eax == WM_CLOSE
 			invoke	EndDialog, hWnd, 0
+;================================================================================================================
 	.elseif	eax == WM_COMMAND
 			mov		eax, wParam
+;----------------------------------------------------------------------------------------------------------------
 			.if		ax == IDOK
 					; judge the length is 0 or not, which is illegal
 					.if	dirLen == 0
@@ -68,30 +109,20 @@ _ProcDirBoxMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 					.endw
 
 					invoke	EndDialog, hWnd, 1
+;----------------------------------------------------------------------------------------------------------------
 			.elseif	ax == IDCANCEL
 					invoke	EndDialog, hWnd, 0
+;----------------------------------------------------------------------------------------------------------------
 			.elseif ax == IDC_Up
 					invoke	lstrcat, offset arrowStringDirBox, offset upArrow
 					invoke	SetDlgItemText, hWnd, IDC_DirBox, offset arrowStringDirBox
 					; add int to tail of array
 					mov		eax, dirLen
 					mov		dirSeq[eax * TYPE DWORD], 0
-					; len++
-					inc		dirLen
-			.elseif ax == IDC_Down
-					invoke	lstrcat, offset arrowStringDirBox, offset downArrow
-					invoke	SetDlgItemText, hWnd, IDC_DirBox, offset arrowStringDirBox
-					; add int to tail of array
-					mov		eax, dirLen
-					mov		dirSeq[eax * TYPE DWORD], 2
-					; len++
-					inc		dirLen
-			.elseif ax == IDC_Left
-					invoke	lstrcat, offset arrowStringDirBox, offset leftArrow
-					invoke	SetDlgItemText, hWnd, IDC_DirBox, offset arrowStringDirBox
-					; add int to tail of array
-					mov		eax, dirLen
-					mov		dirSeq[eax * TYPE DWORD], 3
+					; change button status
+					invoke	EnablePreviousButton, hWnd
+					invoke	GetDlgItem, hWnd, IDC_Up
+					invoke	EnableWindow, eax, FALSE
 					; len++
 					inc		dirLen
 			.elseif ax == IDC_Right
@@ -100,15 +131,46 @@ _ProcDirBoxMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 					; add int to tail of array
 					mov		eax, dirLen
 					mov		dirSeq[eax * TYPE DWORD], 1
+					; change button status
+					invoke	EnablePreviousButton, hWnd
+					invoke	GetDlgItem, hWnd, IDC_Right
+					invoke	EnableWindow, eax, FALSE
 					; len++
 					inc		dirLen
+			.elseif ax == IDC_Down
+					invoke	lstrcat, offset arrowStringDirBox, offset downArrow
+					invoke	SetDlgItemText, hWnd, IDC_DirBox, offset arrowStringDirBox
+					; add int to tail of array
+					mov		eax, dirLen
+					mov		dirSeq[eax * TYPE DWORD], 2
+					; change button status
+					invoke	EnablePreviousButton, hWnd
+					invoke	GetDlgItem, hWnd, IDC_Down
+					invoke	EnableWindow, eax, FALSE
+					; len++
+					inc		dirLen
+			.elseif ax == IDC_Left
+					invoke	lstrcat, offset arrowStringDirBox, offset leftArrow
+					invoke	SetDlgItemText, hWnd, IDC_DirBox, offset arrowStringDirBox
+					; add int to tail of array
+					mov		eax, dirLen
+					mov		dirSeq[eax * TYPE DWORD], 3
+					; change button status
+					invoke	EnablePreviousButton, hWnd
+					invoke	GetDlgItem, hWnd, IDC_Left
+					invoke	EnableWindow, eax, FALSE
+					; len++
+					inc		dirLen
+;----------------------------------------------------------------------------------------------------------------
 			.elseif ax == IDC_Clear
+					invoke	EnablePreviousButton, hWnd
 					; set string to NULL
 					mov		arrowStringDirBox, 0
 					invoke	SetDlgItemText, hWnd, IDC_DirBox, offset arrowStringDirBox
 					; set array length to 0
 					mov		dirLen, 0
 			.endif
+;================================================================================================================
 	.else
 			mov		eax, FALSE
 			ret
@@ -118,5 +180,30 @@ _ProcDirBoxMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 	ret
 
 _ProcDirBoxMain ENDP
+
+EnablePreviousButton PROC,
+	hWnd: DWORD
+
+	.if		dirLen != 0
+		mov		eax, dirLen
+		dec		eax
+		mov		edx, dirSeq[eax * TYPE DWORD]
+		.if		edx == 0
+			invoke	GetDlgItem, hWnd, IDC_Up
+			invoke	EnableWindow, eax, TRUE
+		.elseif	edx == 1
+			invoke	GetDlgItem, hWnd, IDC_Right
+			invoke	EnableWindow, eax, TRUE
+		.elseif	edx == 2
+			invoke	GetDlgItem, hWnd, IDC_Down
+			invoke	EnableWindow, eax, TRUE
+		.else
+			invoke	GetDlgItem, hWnd, IDC_Left
+			invoke	EnableWindow, eax, TRUE
+		.endif
+	.endif
+	ret
+EnablePreviousButton ENDP
+
 END
 
