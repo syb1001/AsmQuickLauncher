@@ -90,10 +90,10 @@ GetDirection PROC uses edx esi edi,
 ;			x1: P1.x
 ;			y0: P0.y
 ;			y1: P1.y
-; Returns:  0 = up ‚Üë
-;           1 = right ‚Üí
-;			2 = down ‚Üì
-;			3 = left ‚Üê
+; Returns:  0 = up ‚Ü?
+;           1 = right ‚Ü?
+;			2 = down ‚Ü?
+;			3 = left ‚Ü?
 ; Local:	delX = |x1 - x0|
 ;			delY = |y0 - y1|
 ;			signX = (x1 < x0)
