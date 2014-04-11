@@ -9,8 +9,10 @@ nid NOTIFYICONDATA <>
 iconText BYTE "哈哈", 0
 iconMenuClose BYTE "退出", 0
 iconMenuOpen BYTE "显示", 0
+topTextFont BYTE "微软雅黑", 0
 
 testCounter	DWORD 0
+hIconMenu DWORD 0
 
 upBitmap DWORD ?
 downBitmap DWORD ?
@@ -60,8 +62,7 @@ DrawLine PROC uses ecx edi esi, _hDc
 		local	@stPointx, @stPointy, @edPointx, @edPointy
 
 	.if drawLength > 1
-		invoke CreatePen, PS_SOLID, 2, 0
-		
+		invoke CreatePen, PS_SOLID, 2, 0e16941h
 		invoke SelectObject, _hDc, eax
 		invoke DeleteObject, eax
 		mov ecx, drawLength
@@ -96,6 +97,9 @@ CreateBitMap PROC, _hDc
 		local	@hDc
 		local	@hBmpBack:DWORD, @hDcBmp:DWORD, @hDcDirection:DWORD, @hBmpDirection:DWORD
 		local	@drawBottomLeft:DWORD, @drawBottomUp:DWORD, @notDrawBottom:DWORD, @drawBottomNum:DWORD, @seqOffset:DWORD
+		local	@middleArrowLeft:DWORD, @middleArrowTop:DWORD
+		local	@textMiddlePos:DWORD
+		local	@topTextAddr:DWORD, @topTextLen:DWORD
 
 	invoke	CreateCompatibleDC, _hDc
 	mov	@hDcBmp,eax
@@ -108,26 +112,41 @@ CreateBitMap PROC, _hDc
 	invoke BitBlt, @hDcBmp, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, _hDc, 0, 0, WHITENESS
 
 
+	;在屏幕中心画出当前方向
+	mov eax, WINDOW_WIDTH
+	sub eax, BMP_CENTER_SIZE
+	mov edx, 0
+	mov esi, 2
+	div esi
+	mov @middleArrowLeft, eax
+
+	mov eax, WINDOW_HEIGHT
+	sub eax, BMP_CENTER_SIZE
+	mov edx, 0
+	mov esi, 2
+	div esi
+	mov @middleArrowTop, eax
+
 	.if lastDirection == 0
 		mov eax, upBitmap
 		mov @hBmpDirection, eax
 		invoke SelectObject, @hDcDirection, @hBmpDirection
-		invoke BitBlt, @hDcBmp, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, @hDcDirection, 0, 0, SRCCOPY
+		invoke BitBlt, @hDcBmp, @middleArrowLeft, @middleArrowTop, WINDOW_WIDTH, WINDOW_HEIGHT, @hDcDirection, 0, 0, SRCCOPY
 	.elseif lastDirection == 1
 		mov eax, rightBitmap
 		mov @hBmpDirection, eax
 		invoke SelectObject, @hDcDirection, @hBmpDirection
-		invoke BitBlt, @hDcBmp, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, @hDcDirection, 0, 0, SRCCOPY
+		invoke BitBlt, @hDcBmp, @middleArrowLeft, @middleArrowTop, WINDOW_WIDTH, WINDOW_HEIGHT, @hDcDirection, 0, 0, SRCCOPY
 	.elseif lastDirection == 2
 		mov eax, downBitmap
 		mov @hBmpDirection, eax
 		invoke SelectObject, @hDcDirection, @hBmpDirection
-		invoke BitBlt, @hDcBmp, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, @hDcDirection, 0, 0, SRCCOPY
+		invoke BitBlt, @hDcBmp, @middleArrowLeft, @middleArrowTop, WINDOW_WIDTH, WINDOW_HEIGHT, @hDcDirection, 0, 0, SRCCOPY
 	.elseif	lastDirection == 3
 		mov eax, leftBitmap
 		mov @hBmpDirection, eax
 		invoke SelectObject, @hDcDirection, @hBmpDirection
-		invoke BitBlt, @hDcBmp, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, @hDcDirection, 0, 0, SRCCOPY
+		invoke BitBlt, @hDcBmp, @middleArrowLeft, @middleArrowTop, WINDOW_WIDTH, WINDOW_HEIGHT, @hDcDirection, 0, 0, SRCCOPY
 	.endif
 
 	pushad
@@ -151,15 +170,9 @@ CreateBitMap PROC, _hDc
 	;mov edi, OFFSET trackSeq
 	;mov @seqOffset, edi
 	mov ebx, OFFSET trackSeq
-	.if seqLength > 2
-		mov esi, 0
-	.endif
 
 	;显示所有手势
 	.while ecx < seqLength
-		.if seqLength > 10
-			mov esi, 0
-		.endif
 		mov edi, seqLength
 		sub edi, ecx
 
@@ -268,21 +281,31 @@ CreateBitMap PROC, _hDc
 	.endw
 
 	popad
+
+	;在上方显示提示文字
+	invoke GetTipOfBestMatch
+	mov @topTextAddr, eax
+	mov ebx, eax
+	invoke lstrlen, ebx
+	mov @topTextLen, eax
+	.if @topTextLen > 0
+		invoke SetTextAlign, @hDcBmp, TA_CENTER
+		mov eax, WINDOW_WIDTH
+		mov edx, 0
+		mov edi, 2
+		div edi
+		mov @textMiddlePos, eax
+		invoke CreateFont, 24, 0, 0, 0, FW_BOLD, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, 0, ADDR topTextFont
+		invoke SelectObject, @hDcBmp, eax
+		invoke DeleteObject, eax
+		invoke TextOut, @hDcBmp, @textMiddlePos, 0, @topTextAddr, @topTextLen
+	.endif 
 	invoke DrawLine, @hDcBmp
 
 	invoke BitBlt, _hDc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, @hDcBmp, 0, 0, SRCCOPY
 
 	invoke DeleteDC, @hDcBmp
 	invoke DeleteDC, @hDcDirection
-
-	comment *
-	invoke DeleteObject, @hDcBmp
-	invoke DeleteObject, @hDcDirection
-	invoke ReleaseDC, hWinMain, @hDcBmp
-	invoke ReleaseDC, hWinMain, @hDcDirection
-	invoke ReleaseDC, hWinMain, _hDc
-	*
-
 	ret
 
 CreateBitMap endp
@@ -309,15 +332,43 @@ IconRightButtonDown proc
 		local	@hPopupMenu:DWORD
 		local	@stPos:POINT
 
-	invoke CreatePopupMenu
-	mov @hPopupMenu, eax
-	invoke AppendMenu, @hPopupMenu, MF_STRING, IDM_EXIT, ADDR iconMenuClose
-	invoke AppendMenu, @hPopupMenu, MF_STRING, IDM_SHOW, ADDR iconMenuOpen
+	invoke	GetSubMenu,hIconMenu, 0
+	mov	@hPopupMenu, eax
 	invoke GetCursorPos, ADDR @stPos
-	invoke	TrackPopupMenu,@hPopupMenu,TPM_LEFTALIGN,@stPos.x,@stPos.y,0 ,hWinMain,NULL
+	invoke	TrackPopupMenu, @hPopupMenu, TPM_LEFTALIGN,@stPos.x,@stPos.y,0 ,hWinMain,NULL
 
 	ret
 
 IconRightButtonDown endp
+
+LeftButtonDownProc proc, lParam
+
+	;给判断方向的点列赋初始值
+	mov edi, OFFSET trackPoint
+	movzx esi, WORD PTR lParam
+	mov (POINT PTR [edi]).x, esi
+	movzx esi, WORD PTR [lParam + 2]
+	mov (POINT PTR [edi]).y, esi
+	mov trackLength, 1
+	mov isLButtonDown, 1
+
+	;给当前的点赋初始值
+	mov edi, OFFSET lastPoint
+	movzx esi, WORD PTR lParam
+	mov (POINT PTR [edi]).x, esi
+	movzx esi, WORD PTR [lParam + 2]
+	mov (POINT PTR [edi]).y, esi
+
+	;给画线轨迹的点列赋初始值
+	mov edi, OFFSET drawPoint
+	movzx esi, WORD PTR lParam
+	mov (POINT PTR [edi]).x, esi
+	movzx esi, WORD PTR [lParam + 2]
+	mov (POINT PTR [edi]).y, esi
+	mov drawLength, 1
+
+	ret
+
+LeftButtonDownProc endp
 
 END
