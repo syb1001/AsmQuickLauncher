@@ -45,7 +45,6 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 			mov	ecx,@stPs.rcPaint.bottom
 			sub	ecx,@stPs.rcPaint.top
 			mov WINDOW_HEIGHT, ecx
-
 			invoke CreateBitMap, @hDc
 			invoke	EndPaint,hWnd,addr @stPs
 ;********************************************************************
@@ -61,44 +60,14 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 		.elseif eax == WM_COMMAND
 			mov	eax, wParam
 			movzx	eax, ax
-			.if ax == IDM_EXIT
-				invoke Shell_NotifyIcon, NIM_DELETE, ADDR nid
-				invoke	DestroyWindow,hWinMain
-				invoke	PostQuitMessage,NULL
-			.elseif ax == IDM_SHOW
-				invoke ShowWindow, hWinMain, SW_RESTORE
-				invoke Shell_NotifyIcon, NIM_DELETE, ADDR nid
-			.else
-				invoke	ProcessMenuEvents, eax
-			.endif
+			invoke	ProcessMenuEvents, eax
 ;********************************************************************
 		.elseif eax == WM_LBUTTONDOWN
 			.if	functionEnabled == FALSE
 				ret
 			.endif
-			;给判断方向的点列赋初始值
-			mov edi, OFFSET trackPoint
-			movzx esi, WORD PTR lParam
-			mov (POINT PTR [edi]).x, esi
-			movzx esi, WORD PTR [lParam + 2]
-			mov (POINT PTR [edi]).y, esi
-			mov trackLength, 1
-			mov isLButtonDown, 1
 
-			;给当前的点赋初始值
-			mov edi, OFFSET lastPoint
-			movzx esi, WORD PTR lParam
-			mov (POINT PTR [edi]).x, esi
-			movzx esi, WORD PTR [lParam + 2]
-			mov (POINT PTR [edi]).y, esi
-
-			;给画线轨迹的点列赋初始值
-			mov edi, OFFSET drawPoint
-			movzx esi, WORD PTR lParam
-			mov (POINT PTR [edi]).x, esi
-			movzx esi, WORD PTR [lParam + 2]
-			mov (POINT PTR [edi]).y, esi
-			mov drawLength, 1
+			invoke LeftButtonDownProc, lParam
 			
 		.elseif eax == WM_LBUTTONUP
 			.if	functionEnabled == FALSE
@@ -125,14 +94,6 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 				; execute the action
 				invoke	ExecuteMatch, bestMatch
 			.endif
-
-		 
-			invoke GetTipOfBestMatch
-			mov ebx, eax
-			.if ebx > 0
-				invoke MessageBox, 0, ebx, ebx, 0
-			.endif 
-			
 
 			invoke InitializeTrack			;  clear all for new track 
 			
@@ -245,6 +206,7 @@ _ProcWinMain	endp
 _WinMain	proc
 		local	@stWndClass:WNDCLASSEX
 		local	@stMsg:MSG
+		local	@windowLeft:DWORD, @windowTop:DWORD
 
 		invoke ImportAcitons
 
@@ -254,6 +216,9 @@ _WinMain	proc
 		; load the main menu
 		invoke	LoadMenu, hInstance, IDR_MainMenu
 		mov		hMenu, eax
+		invoke	initializeMenu
+		invoke	LoadMenu, hInstance, IDR_IconMenu
+		mov		hIconMenu, eax
 
 		invoke	RtlZeroMemory,addr @stWndClass,sizeof @stWndClass
 ;********************************************************************
@@ -274,9 +239,23 @@ _WinMain	proc
 ;********************************************************************
 		mov WINDOW_WIDTH, 400
 		mov WINDOW_HEIGHT, 400
+		invoke GetSystemMetrics, SM_CXSCREEN
+		sub eax, WINDOW_WIDTH
+		mov edx, 0
+		mov esi, 2
+		div esi
+		mov @windowLeft, eax
+
+		invoke GetSystemMetrics, SM_CYSCREEN
+		sub eax, WINDOW_HEIGHT
+		mov edx, 0
+		mov esi, 2
+		div esi
+		mov @windowTop, eax
+
 		invoke	CreateWindowEx,WS_EX_CLIENTEDGE,offset szClassName,offset szCaptionMain,\
 			WS_OVERLAPPEDWINDOW,\
-			100,100,WINDOW_WIDTH,WINDOW_HEIGHT,\
+			@windowLeft,@windowTop,WINDOW_WIDTH,WINDOW_HEIGHT,\
 			NULL,hMenu,hInstance,NULL
 		mov	hWinMain,eax
 		invoke	ShowWindow,hWinMain,SW_SHOWNORMAL

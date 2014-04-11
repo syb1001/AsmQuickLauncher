@@ -9,6 +9,7 @@ include		kernel32.inc
 include		masm32.inc
 include		shell32.inc ; ShellExecute
 include		Comdlg32.inc
+include		advapi32.inc
 
 includelib	gdi32.lib
 includelib	user32.lib
@@ -17,6 +18,7 @@ includelib	masm32.lib
 includelib	shell32.lib
 includelib	Comdlg32.lib
 includelib	MSVCRT.LIB
+includelib	advapi32.lib
 ;==================================
 
 ;=============struct===============
@@ -88,9 +90,14 @@ CreateBitMap PROTO,
 ToTray PROTO
 IconRightButtonDown PROTO
 
+LeftButtonDownProc PROTO,
+	lParam:DWORD
+
 ;---------------UI-----------------
 ProcessMenuEvents PROTO,
 	evt: DWORD
+
+initializeMenu PROTO
 
 ;---------------file---------------
 ImportAcitons PROTO
@@ -137,7 +144,8 @@ externdef	drawLength:		DWORD
 externdef	lastDirection:	SDWORD
 externdef	lastPoint:		PTR POINT
 ;----------------------------------
-externdef train: DWORD
+externdef	train:			DWORD
+externdef	isLButtonDown:	BYTE
 
 ; ---------action map-------------
 externdef actionMap: PTR ACTION
@@ -155,6 +163,7 @@ externdef rightArrow: BYTE
 externdef	hInstance:	DWORD
 externdef	hWinMain:	DWORD
 externdef	hMenu:		DWORD ; handler of main menu
+externdef	hIconMenu:	DWORD
 
 ;--------------dialog--------------
 externdef	actionAddressInputBox:	DWORD
@@ -196,8 +205,9 @@ ID_MenuFront		equ		40005
 ID_MenuWindowFront	equ		40006
 ID_MenuAutoRun		equ		40007
 
-IDM_SHOW			equ		301
-IDM_EXIT			equ		302
+IDR_IconMenu	equ		107
+ID_SHOW			equ		40012
+ID_EXIT			equ		40013
 ;----------edit dialog-------------
 IDD_EditDialog		equ		102
 IDC_GestureList		equ		1001
@@ -235,7 +245,7 @@ IDI_TRAY			equ		106
 
 ;---------bmp attribute-------------
 BMP_BOTTOM_SIZE			equ		25
-BMP_LEFTUPCORNER_SIZE	equ		50
+BMP_CENTER_SIZE			equ		50
 
 
 ;---------window attribute-----------
