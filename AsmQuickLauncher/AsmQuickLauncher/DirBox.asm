@@ -2,16 +2,31 @@
 .model flat, stdcall
 option casemap:none
 
+; A dialog to get an arrow sequence
+; Use arrow sequence to define a mouse gesture
+
 include Declaration.inc
 
+; when an arrow button is clicked
+; it will be disabled
+; the previous button in the sequence is enabled
 EnablePreviousButton PROTO,
 	hWnd: DWORD
 
 .data
-dirSeq					dd		32 DUP(0)
-dirLen					dd		0
+; the return address of this dialog
+; global variable, initialized just before the dialog is created
 actionAddressDirBox		dd		?
+
+; the temp string used for storing arrow string
 arrowStringDirBox		db		128 DUP(?)
+
+; record the 0123 sequence indicates arrow sequence
+; when OK button is clicked, assign this sequence to actionAddressDirBox
+dirSeq					dd		32 DUP(0)
+
+; length of dirSeq
+dirLen					dd		0
 
 .const
 szError		db		'´íÎó', 0

@@ -2,6 +2,9 @@
 .model flat, stdcall
 option casemap:none
 
+; Dialog for user to input path
+; created when clicking '输入路径'
+
 include Declaration.inc
 
 .const
@@ -9,7 +12,11 @@ szWarningCap	db		'路径不合法', 0
 szPathWarning	db		'请填写路径！', 0
 
 .data
+; the return address of this dialog
+; when OK clicked, the path will be assigned to the path
+; field of the temp ACTION struct of callee of this dialog
 actionAddressInputBox		dd		?
+; temp string for path
 tempPathInputBox			db		MAX_PATH DUP(?)
 
 .code
