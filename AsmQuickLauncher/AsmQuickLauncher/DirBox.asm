@@ -29,25 +29,27 @@ dirSeq					dd		32 DUP(0)
 dirLen					dd		0
 
 .const
-szError		db		'错误', 0
-szWarning	db		'手势序列长度不能为0！', 0
+szError			db		'错误', 0
+szWarning		db		'手势序列长度不能为0！', 0
+szArrowFont		db		'微软雅黑', 0
 
 .code
 _ProcDirBoxMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
+	local	@hFont:		DWORD
 
 	mov		eax, wMsg
 ;================================================================================================================
 	.if		eax == WM_INITDIALOG
 			mov		ebx, actionAddressDirBox
-			; convert 0123 sequence to dir sequence
+			;-------convert 0123 sequence to dir sequence----------
 			invoke	GetArrowSeq, addr (ACTION PTR [ebx]).seq, (ACTION PTR [ebx]).len, offset arrowStringDirBox
-			; copy arrow string and diaplay
+			;-----------copy arrow string and diaplay--------------
 			invoke	SetDlgItemText, hWnd, IDC_DirBox, offset arrowStringDirBox
-			; copy length
+			;--------------------copy length-----------------------
 			mov		ebx, actionAddressDirBox
 			mov		edx, (ACTION PTR [ebx]).len
 			mov		dirLen, edx
-			; copy 0123 sequence
+			;-----------------copy 0123 sequence-------------------
 			mov		ecx, 0
 			lea		esi, (ACTION PTR [ebx]).seq
 			lea		edi, dirSeq
@@ -58,7 +60,7 @@ _ProcDirBoxMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 				add		edi, TYPE DWORD
 				inc		ecx
 			.endw
-			; set button status
+			;-------------------set button status------------------
 			.if		dirLen != 0
 				mov		eax, dirLen
 				dec		eax
@@ -77,6 +79,21 @@ _ProcDirBoxMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 					invoke	EnableWindow, eax, FALSE
 				.endif
 			.endif
+			;--------------------set button font-------------------
+			invoke	CreateFont, 28, 0, 0, 0, FW_HEAVY, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, 0, offset szArrowFont
+			mov		@hFont, eax
+			invoke	GetDlgItem, hWnd, IDC_Up
+			invoke	SendMessage, eax, WM_SETFONT, @hFont, TRUE
+			invoke	GetDlgItem, hWnd, IDC_Down
+			invoke	SendMessage, eax, WM_SETFONT, @hFont, TRUE
+			invoke	GetDlgItem, hWnd, IDC_Left
+			invoke	SendMessage, eax, WM_SETFONT, @hFont, TRUE
+			invoke	GetDlgItem, hWnd, IDC_Right
+			invoke	SendMessage, eax, WM_SETFONT, @hFont, TRUE
+			invoke	CreateFont, 23, 0, 0, 0, FW_BOLD, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, 0, offset szArrowFont
+			mov		@hFont, eax
+			invoke	GetDlgItem, hWnd, IDC_DirBox
+			invoke	SendMessage, eax, WM_SETFONT, @hFont, TRUE
 ;================================================================================================================
 	.elseif	eax == WM_CLOSE
 			invoke	EndDialog, hWnd, 0

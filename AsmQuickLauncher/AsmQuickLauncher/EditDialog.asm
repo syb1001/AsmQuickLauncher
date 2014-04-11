@@ -17,6 +17,7 @@ szPathWarning	db		'请选择启动项！', 0
 szSeqWarning	db		'请编辑手势序列！', 0
 szButtonAdd		db		'添加', 0
 szButtonClose	db		'关闭', 0
+szArrowFont		db		'微软雅黑', 0
 
 .data
 ; the temp ACTION struct for recording user's modification
@@ -35,14 +36,17 @@ _ProcEditDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 			@bi:		BROWSEINFO,
 			@lpidlist:	DWORD,
 			@sei:		SHELLEXECUTEINFO,
-			@handler:	DWORD
+			@hFont:		DWORD
 
 	mov		eax, wMsg
 ;================================================================================================================
 	.if		eax == WM_INITDIALOG
 			
+			; set the font of gesture arrow sequence
+			invoke	CreateFont, 23, 0, 0, 0, FW_BOLD, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, 0, offset szArrowFont
+			mov		@hFont, eax
 			invoke	GetDlgItem, hWnd, IDC_GestureSequence
-			invoke	EnableWindow, eax, FALSE
+			invoke	SendMessage, eax, WM_SETFONT, @hFont, TRUE
 
 			; initialize temp action
 			invoke	RtlZeroMemory, offset tempActionEdit, TYPE ACTION
