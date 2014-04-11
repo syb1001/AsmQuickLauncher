@@ -83,21 +83,23 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 			mov isLButtonDown, al
 
 			; call ShellExecute
-			.if	bestMatch == -1
-				.if	capturingNew == TRUE
-					; open dialog to get new gesture info
-					invoke	DialogBoxParam, hInstance, IDD_NewDialog, hWinMain, offset _ProcNewDlgMain, NULL
-				.else
-					; inquire whether to add new action
-					invoke	MessageBox, hWnd, offset szTextNew, offset szCaptionNew, MB_YESNO
-					.if	eax == IDYES
+			.if seqLength > 0
+				.if	bestMatch == -1
+					.if	capturingNew == TRUE
 						; open dialog to get new gesture info
 						invoke	DialogBoxParam, hInstance, IDD_NewDialog, hWinMain, offset _ProcNewDlgMain, NULL
+					.else
+						; inquire whether to add new action
+						invoke	MessageBox, hWnd, offset szTextNew, offset szCaptionNew, MB_YESNO
+						.if	eax == IDYES
+							; open dialog to get new gesture info
+							invoke	DialogBoxParam, hInstance, IDD_NewDialog, hWinMain, offset _ProcNewDlgMain, NULL
+						.endif
 					.endif
+				.else
+					; execute the action
+					invoke	ExecuteMatch, bestMatch
 				.endif
-			.else
-				; execute the action
-				invoke	ExecuteMatch, bestMatch
 			.endif
 
 			invoke InitializeTrack			;  clear all for new track 
@@ -174,7 +176,34 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 				.endif 
 
 				.if trackTooLong > 0 
+					mov edi, OFFSET drawPoint
+					mov al, 0
+					mov isLButtonDown, al
 					invoke MessageBox, 0, addr szTooLongStr, addr szWarningStr, 0
+								
+					; call ShellExecute
+					.if	bestMatch == -1
+						.if	capturingNew == TRUE
+							; open dialog to get new gesture info
+							invoke	DialogBoxParam, hInstance, IDD_NewDialog, hWinMain, offset _ProcNewDlgMain, NULL
+						.else
+							; inquire whether to add new action
+							invoke	MessageBox, hWnd, offset szTextNew, offset szCaptionNew, MB_YESNO
+							.if	eax == IDYES
+								; open dialog to get new gesture info
+								invoke	DialogBoxParam, hInstance, IDD_NewDialog, hWinMain, offset _ProcNewDlgMain, NULL
+							.endif
+						.endif
+					.else
+						; execute the action
+						invoke	ExecuteMatch, bestMatch
+					.endif
+
+					invoke InitializeTrack			;  clear all for new track 
+			
+					invoke	InvalidateRect,hWnd,NULL,1
+
+
 					ret 
 				.endif 
 
@@ -234,12 +263,31 @@ _ProcWinMain	endp
 _WinMain	proc
 		local	@stWndClass:WNDCLASSEX
 		local	@stMsg:MSG
+		local	@cmdline: PTR BYTE
+		local	@argc: DWORD
 		local	@windowLeft:DWORD, @windowTop:DWORD
+		local	@startJudgeLast:BYTE, @startJudgeFirst:BYTE
 
 		invoke ImportAcitons
 
 		invoke	GetModuleHandle,NULL
 		mov	hInstance,eax
+
+		invoke GetCommandLine
+		mov @cmdline, eax
+		invoke lstrlen, @cmdline
+		mov esi, eax
+		add @cmdline, eax
+
+		dec @cmdline
+		mov esi, @cmdline
+		mov al, [esi]
+		mov @startJudgeLast, al
+
+		dec @cmdline
+		mov esi, @cmdline
+		mov al, [esi]
+		mov @startJudgeFirst, al
 
 		; load icon 
 		invoke 	LoadIconBitmap
@@ -254,6 +302,9 @@ _WinMain	proc
 ;********************************************************************
 ; 注册窗口类
 ;********************************************************************
+		invoke	LoadIcon,hInstance,IDI_TRAY
+		mov	@stWndClass.hIcon,eax
+		mov	@stWndClass.hIconSm,eax
 		invoke	LoadCursor,0,IDC_ARROW
 		mov	@stWndClass.hCursor,eax
 		push	hInstance
@@ -288,8 +339,15 @@ _WinMain	proc
 			@windowLeft,@windowTop,WINDOW_WIDTH,WINDOW_HEIGHT,\
 			NULL,hMenu,hInstance,NULL
 		mov	hWinMain,eax
-		invoke	ShowWindow,hWinMain,SW_SHOWNORMAL
-		invoke	UpdateWindow,hWinMain
+
+		.if @startJudgeLast == 66 && @startJudgeFirst == 47
+			invoke ToTray
+			mov WinHide, 0
+		.else
+			invoke	ShowWindow,hWinMain,SW_SHOWNORMAL
+			invoke	UpdateWindow,hWinMain
+			mov WinHide, 1
+		.endif
 ;********************************************************************
 ; 消息循环
 ;********************************************************************
