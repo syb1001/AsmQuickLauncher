@@ -22,6 +22,9 @@ isRButtonDown	BYTE	0
 WINDOW_WIDTH	DWORD	0
 WINDOW_HEIGHT	DWORD	0
 		
+szTooLongStr BYTE 'too long!', 0
+szWarningStr BYTE 'warning', 0
+
 .code
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; ´°¿Ú¹ý³Ì
@@ -200,10 +203,16 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 				.endif
 
 				;invoke RecognizeTrack			; recognize the gesture
-
+				
 				.if drawLength == 1024
 					mov al, 0
 					mov isLButtonDown, al
+					mov trackTooLong, 1
+				.endif 
+
+				.if trackTooLong > 0 
+					invoke MessageBox, 0, addr szTooLongStr, addr szWarningStr, 0
+					ret 
 				.endif 
 
 				.if drawLength >20
@@ -217,10 +226,13 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 
 			.endif
 			invoke	InvalidateRect,hWnd,NULL,0
+
+			
+
 		.elseif eax == WM_SYSCOMMAND && wParam == SC_MINIMIZE
 			invoke ToTray
 		.elseif eax == WM_USER
-			.if lParam == WM_LBUTTONDBLCLK
+			.if lParam == WM_LBUTTONDOWN
 				invoke ShowWindow, hWinMain, SW_RESTORE
 				invoke Shell_NotifyIcon, NIM_DELETE, ADDR nid
 			.endif
@@ -251,6 +263,8 @@ _WinMain	proc
 		invoke	GetModuleHandle,NULL
 		mov	hInstance,eax
 
+		; load icon 
+		invoke 	LoadIconBitmap
 		; load the main menu
 		invoke	LoadMenu, hInstance, IDR_MainMenu
 		mov		hMenu, eax

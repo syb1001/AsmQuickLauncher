@@ -26,7 +26,7 @@ ACTION STRUCT
 	path db 1024 DUP(0)
 	tip db 1024 DUP(0)
 	pathType dd 0
-ACTION ENDS 
+ACTION ENDS
 ;==================================
 
 ;============procedure=============
@@ -74,6 +74,7 @@ AddNewAction PROTO,
 	pathType: DWORD
 	
 GetTipOfBestMatch PROTO
+
 ;-------------DEBUG----------------
 MessageBoxDwordArr PROTO,
 	pArr: PTR DWORD,
@@ -91,6 +92,7 @@ CreateBitMap PROTO,
 
 ToTray PROTO
 IconRightButtonDown PROTO
+LoadIconBitmap PROTO
 
 ;---------------UI-----------------
 ProcessMenuEvents PROTO,
@@ -149,7 +151,7 @@ externdef actionLen: DWORD
 
 ;---------- recognize ------------
 externdef bestMatch: SDWORD
-
+externdef trackTooLong: DWORD 
 ;---------- arrow ----------------
 externdef upArrow: BYTE
 externdef downArrow: BYTE
@@ -163,6 +165,7 @@ externdef	hMenu:		DWORD ; handler of main menu
 ;--------------dialog--------------
 externdef	actionAddressInputBox:	DWORD
 externdef	actionAddressDirBox:	DWORD
+
 ;-----------functional-------------
 externdef	functionEnabled:	BYTE
 externdef	capturingNew:		BYTE

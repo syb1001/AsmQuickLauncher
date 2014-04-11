@@ -10,15 +10,58 @@ iconText BYTE "¹þ¹þ", 0
 iconMenuClose BYTE "ÍË³ö", 0
 iconMenuOpen BYTE "ÏÔÊ¾", 0
 
+testCounter	DWORD 0
+
+upBitmap DWORD ?
+downBitmap DWORD ?
+leftBitmap DWORD ?
+rightBitmap DWORD ?
+
+bottomUpBitmap DWORD ?
+bottomDownBitmap DWORD ?
+bottomLeftBitmap DWORD ?
+bottomRightBitmap DWORD ?
+
+
+trackTooLong DWORD 0
+
 .code
+
+LoadIconBitmap PROC
+	
+	invoke	LoadBitmap, hInstance, IDB_BOTTOMUP
+	MOV bottomUpBitmap, eax 
+
+	invoke	LoadBitmap, hInstance, IDB_BOTTOMDOWN
+	MOV bottomDownBitmap, eax 
+
+	invoke	LoadBitmap, hInstance, IDB_BOTTOMRIGHT
+	MOV bottomRightBitmap, eax 
+
+	invoke	LoadBitmap, hInstance, IDB_BOTTOMLEFT
+	MOV bottomLeftBitmap, eax 
+
+	invoke	LoadBitmap, hInstance, IDB_UP
+	mov upBitmap, eax
+
+	invoke	LoadBitmap, hInstance, IDB_DOWN
+	mov downBitmap, eax 
+
+	invoke	LoadBitmap, hInstance, IDB_LEFT
+	mov leftBitmap, eax
+
+	invoke	LoadBitmap, hInstance, IDB_RIGHT
+	mov rightBitmap, eax 
+
+	ret 
+LoadIconBitmap ENDP 
+
 DrawLine PROC uses ecx edi esi, _hDc
 		local	@stPointx, @stPointy, @edPointx, @edPointy
 
 	.if drawLength > 1
-		invoke CreatePen, PS_SOLID, 3, 0
-		.if	eax == 0
-			mov eax, 0
-		.endif
+		invoke CreatePen, PS_SOLID, 2, 0
+		
 		invoke SelectObject, _hDc, eax
 		invoke DeleteObject, eax
 		mov ecx, drawLength
@@ -61,28 +104,27 @@ CreateBitMap PROC, _hDc
 	invoke CreateCompatibleBitmap, _hDc, WINDOW_WIDTH, WINDOW_HEIGHT
 	mov	@hBmpBack, eax
 	invoke SelectObject, @hDcBmp, @hBmpBack
-	invoke	ReleaseDC, hWinMain, @hDc
+	invoke DeleteObject, @hBmpBack
 	invoke BitBlt, @hDcBmp, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, _hDc, 0, 0, WHITENESS
-	invoke DrawLine, @hDcBmp
 
 
 	.if lastDirection == 0
-		invoke	LoadBitmap, hInstance, IDB_UP
+		mov eax, upBitmap
 		mov @hBmpDirection, eax
 		invoke SelectObject, @hDcDirection, @hBmpDirection
 		invoke BitBlt, @hDcBmp, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, @hDcDirection, 0, 0, SRCCOPY
 	.elseif lastDirection == 1
-		invoke	LoadBitmap, hInstance, IDB_RIGHT
+		mov eax, rightBitmap
 		mov @hBmpDirection, eax
 		invoke SelectObject, @hDcDirection, @hBmpDirection
 		invoke BitBlt, @hDcBmp, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, @hDcDirection, 0, 0, SRCCOPY
 	.elseif lastDirection == 2
-		invoke	LoadBitmap, hInstance, IDB_DOWN
+		mov eax, downBitmap
 		mov @hBmpDirection, eax
 		invoke SelectObject, @hDcDirection, @hBmpDirection
 		invoke BitBlt, @hDcBmp, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, @hDcDirection, 0, 0, SRCCOPY
 	.elseif	lastDirection == 3
-		invoke	LoadBitmap, hInstance, IDB_LEFT
+		mov eax, leftBitmap
 		mov @hBmpDirection, eax
 		invoke SelectObject, @hDcDirection, @hBmpDirection
 		invoke BitBlt, @hDcBmp, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, @hDcDirection, 0, 0, SRCCOPY
@@ -132,25 +174,26 @@ CreateBitMap PROC, _hDc
 			div esi
 			mov @drawBottomLeft, eax
 			.while ecx < seqLength
+
 				mov esi, [ebx]
 				push ecx
 				.if esi == 0
-					invoke	LoadBitmap, hInstance, IDB_BOTTOMUP
+					mov eax, bottomUpBitmap
 					mov @hBmpDirection, eax
 					invoke SelectObject, @hDcDirection, @hBmpDirection
 					invoke BitBlt, @hDcBmp, @drawBottomLeft, @drawBottomUp, WINDOW_WIDTH, WINDOW_HEIGHT, @hDcDirection, 0, 0, SRCCOPY
 				.elseif esi == 1
-					invoke	LoadBitmap, hInstance, IDB_BOTTOMRIGHT
+					mov eax, bottomRightBitmap
 					mov @hBmpDirection, eax
 					invoke SelectObject, @hDcDirection, @hBmpDirection
 					invoke BitBlt, @hDcBmp, @drawBottomLeft, @drawBottomUp, WINDOW_WIDTH, WINDOW_HEIGHT, @hDcDirection, 0, 0, SRCCOPY
 				.elseif esi == 2
-					invoke	LoadBitmap, hInstance, IDB_BOTTOMDOWN
+					mov eax, bottomDownBitmap
 					mov @hBmpDirection, eax
 					invoke SelectObject, @hDcDirection, @hBmpDirection
 					invoke BitBlt, @hDcBmp, @drawBottomLeft, @drawBottomUp, WINDOW_WIDTH, WINDOW_HEIGHT, @hDcDirection, 0, 0, SRCCOPY
 				.elseif	esi == 3
-					invoke	LoadBitmap, hInstance, IDB_BOTTOMLEFT
+					mov eax, bottomLeftBitmap
 					mov @hBmpDirection, eax
 					invoke SelectObject, @hDcDirection, @hBmpDirection
 					invoke BitBlt, @hDcBmp, @drawBottomLeft, @drawBottomUp, WINDOW_WIDTH, WINDOW_HEIGHT, @hDcDirection, 0, 0, SRCCOPY
@@ -181,22 +224,22 @@ CreateBitMap PROC, _hDc
 				mov esi, [ebx]
 				push ecx
 				.if esi == 0
-					invoke	LoadBitmap, hInstance, IDB_BOTTOMUP
+					mov eax, bottomUpBitmap
 					mov @hBmpDirection, eax
 					invoke SelectObject, @hDcDirection, @hBmpDirection
 					invoke BitBlt, @hDcBmp, @drawBottomLeft, @drawBottomUp, WINDOW_WIDTH, WINDOW_HEIGHT, @hDcDirection, 0, 0, SRCCOPY
 				.elseif esi == 1
-					invoke	LoadBitmap, hInstance, IDB_BOTTOMRIGHT
+					mov eax, bottomRightBitmap
 					mov @hBmpDirection, eax
 					invoke SelectObject, @hDcDirection, @hBmpDirection
 					invoke BitBlt, @hDcBmp, @drawBottomLeft, @drawBottomUp, WINDOW_WIDTH, WINDOW_HEIGHT, @hDcDirection, 0, 0, SRCCOPY
 				.elseif esi == 2
-					invoke	LoadBitmap, hInstance, IDB_BOTTOMDOWN
+					mov eax, bottomDownBitmap
 					mov @hBmpDirection, eax
 					invoke SelectObject, @hDcDirection, @hBmpDirection
 					invoke BitBlt, @hDcBmp, @drawBottomLeft, @drawBottomUp, WINDOW_WIDTH, WINDOW_HEIGHT, @hDcDirection, 0, 0, SRCCOPY
 				.elseif	esi == 3
-					invoke	LoadBitmap, hInstance, IDB_BOTTOMLEFT
+					mov eax, bottomLeftBitmap
 					mov @hBmpDirection, eax
 					invoke SelectObject, @hDcDirection, @hBmpDirection
 					invoke BitBlt, @hDcBmp, @drawBottomLeft, @drawBottomUp, WINDOW_WIDTH, WINDOW_HEIGHT, @hDcDirection, 0, 0, SRCCOPY
@@ -213,6 +256,11 @@ CreateBitMap PROC, _hDc
 			add ecx, @drawBottomNum
 				
 			mov esi, BMP_BOTTOM_SIZE
+			.if @drawBottomUp <= esi
+					mov eax, 1
+					mov trackTooLong, eax 
+					ret 
+			.endif 
 			sub @drawBottomUp, esi
 
 				
@@ -220,12 +268,20 @@ CreateBitMap PROC, _hDc
 	.endw
 
 	popad
+	invoke DrawLine, @hDcBmp
 
 	invoke BitBlt, _hDc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, @hDcBmp, 0, 0, SRCCOPY
 
 	invoke DeleteDC, @hDcBmp
 	invoke DeleteDC, @hDcDirection
-	invoke DeleteObject, @hBmpBack
+
+	comment *
+	invoke DeleteObject, @hDcBmp
+	invoke DeleteObject, @hDcDirection
+	invoke ReleaseDC, hWinMain, @hDcBmp
+	invoke ReleaseDC, hWinMain, @hDcDirection
+	invoke ReleaseDC, hWinMain, _hDc
+	*
 
 	ret
 
