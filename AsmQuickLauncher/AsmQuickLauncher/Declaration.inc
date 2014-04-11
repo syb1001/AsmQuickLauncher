@@ -26,7 +26,7 @@ ACTION STRUCT
 	path db 1024 DUP(0)
 	tip db 1024 DUP(0)
 	pathType dd 0
-ACTION ENDS 
+ACTION ENDS
 ;==================================
 
 ;============procedure=============

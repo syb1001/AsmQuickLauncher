@@ -220,7 +220,7 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 		.elseif eax == WM_SYSCOMMAND && wParam == SC_MINIMIZE
 			invoke ToTray
 		.elseif eax == WM_USER
-			.if lParam == WM_LBUTTONDBLCLK
+			.if lParam == WM_LBUTTONDOWN
 				invoke ShowWindow, hWinMain, SW_RESTORE
 				invoke Shell_NotifyIcon, NIM_DELETE, ADDR nid
 			.endif
