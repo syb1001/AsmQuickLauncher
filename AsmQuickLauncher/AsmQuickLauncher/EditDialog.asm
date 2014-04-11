@@ -11,6 +11,8 @@ szWarningCap	db		'修改失败', 0
 szTipWarning	db		'请填写手势提示文字！', 0
 szPathWarning	db		'请选择启动项！', 0
 szSeqWarning	db		'请编辑手势序列！', 0
+szButtonAdd		db		'添加', 0
+szButtonClose	db		'关闭', 0
 
 .data
 tempActionEdit		ACTION	<>
@@ -23,7 +25,8 @@ _ProcEditDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 	LOCAL	@ofn:		OPENFILENAME,
 			@bi:		BROWSEINFO,
 			@lpidlist:	DWORD,
-			@sei:		SHELLEXECUTEINFO
+			@sei:		SHELLEXECUTEINFO,
+			@handler:	DWORD
 
 	mov		eax, wMsg
 ;================================================================================================================
@@ -47,7 +50,12 @@ _ProcEditDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 				inc		eax
 			.endw
 
-			.if actionLen != 0
+			.if actionLen == 0
+				invoke	GetDlgItem, hWnd, IDC_DeleteGesture
+				invoke	EnableWindow, eax, FALSE
+				invoke	SetDlgItemText, hWnd, IDOK, offset szButtonAdd
+				invoke	SetDlgItemText, hWnd, IDCANCEL, offset szButtonClose
+			.else
 				invoke	CopyAction, offset tempActionEdit, offset actionMap
 			.endif
 
@@ -216,6 +224,10 @@ _ProcEditDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 				
 				.if		actionLen == 0
 					invoke	RtlZeroMemory, offset tempActionEdit, TYPE ACTION
+					invoke	GetDlgItem, hWnd, IDC_DeleteGesture
+					invoke	EnableWindow, eax, FALSE
+					invoke	SetDlgItemText, hWnd, IDOK, offset szButtonAdd
+					invoke	SetDlgItemText, hWnd, IDCANCEL, offset szButtonClose
 				.else
 					invoke	CopyAction,	offset tempActionEdit, ebx
 				.endif

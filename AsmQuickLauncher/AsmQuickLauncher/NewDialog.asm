@@ -29,6 +29,9 @@ _ProcNewDlgMain PROC uses ebx edi esi hWnd, wMsg, wParam, lParam
 	.if		eax == WM_INITDIALOG
 			; init the dialog controls here
 
+			; initialize temp action
+			invoke	RtlZeroMemory, offset tempActionNew, TYPE ACTION
+
 			mov		ecx, 0
 			lea		esi, trackSeq
 			lea		edi, tempActionNew.seq
