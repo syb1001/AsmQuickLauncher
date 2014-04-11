@@ -68,7 +68,8 @@ AddNewAction PROTO,
 	path: PTR BYTE,
 	tip: PTR BYTE, 
 	pathType: DWORD
-
+	
+GetTipOfBestMatch PROTO
 ;-------------DEBUG----------------
 MessageBoxDwordArr PROTO,
 	pArr: PTR DWORD,

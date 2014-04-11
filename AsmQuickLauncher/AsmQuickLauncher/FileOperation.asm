@@ -10,7 +10,7 @@ option casemap:none
 ; and EXPORT the actions to the same file 
 ; when the program exits 
 ; file format:
-; type:DWORD len:DWORD actionSeq:DWORD * len path: BYTE 
+; type:DWORD len:DWORD actionSeq:DWORD * len path: BYTE tip:BYTE
 ; Last update: Apr/10/2014
 
 include Declaration.inc
@@ -31,6 +31,7 @@ szFileName1 BYTE 'settings.ini',0
 
 szSpace BYTE ' ', 0
 szCrlf BYTE 13,10, 0
+szSplit BYTE 124, 0
 
 .code 
 ;-----------------------------------------------------
@@ -95,11 +96,24 @@ OutputCrlf2File PROC
 	ret 
 OutputCrlf2File ENDP
 
+OutputSplit2File PROC,
+	p:PTR BYTE 
+	LOCAL @dwBytesWrite
+
+	pushad
+	invoke lstrlen, p 	; count the length 
+	mov edx, eax
+	invoke WriteFile, fpHandle, p, edx, addr @dwBytesWrite, 0
+	popad 
+	ret 
+	
+OutputSplit2File ENDP
+
 ;-----------------------------------------------------
 ImportAcitons PROC
 	LOCAL @hFile, @dwBytesRead
 	LOCAL @szReadBuffer: byte
-	LOCAL curStep: DWORD
+	LOCAL curStep: DWORD, first: DWORD
 	LOCAL pathType: DWORD
 	LOCAL seqLen: DWORD, seq[MAX_SEQ_LEN]:DWORD,seqIndex: DWORD
 	LOCAL path[1024]:DWORD, pathIndex: DWORD
@@ -109,10 +123,22 @@ ImportAcitons PROC
 ; and store the ACTIONs into actionMap
 ; Called when the program starts 
 ;-----------------------------------------------------
+
+	; get the absolute path of settings.ini, or file saving may fail
+	invoke GetModuleFileName, 0, offset szProcFileName, MAX_PATH
+	invoke	lstrlen, offset szProcFileName
+	mov		ecx, eax
+	.while	szProcFileName[ecx] != '\'
+		dec	ecx
+	.endw
+	inc		ecx
+	mov		szProcFileName[ecx], 0
+	invoke	lstrcat, offset szProcFileName, offset szFileName1
+
 	pushad 
 
 	;---------------- open settings.ini ------------------------------
-	INVOKE	CreateFile,addr szFileName,GENERIC_READ,FILE_SHARE_READ,0,\
+	INVOKE	CreateFile,addr szProcFileName,GENERIC_READ,FILE_SHARE_READ,0,\
 			OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0
 
 	.if	eax ==	INVALID_HANDLE_VALUE
@@ -134,7 +160,7 @@ ImportAcitons PROC
 	mov seqIndex, 0
 	mov pathIndex, 0
 	mov tipIndex, 0
-
+	mov first, 0
 	;------------------------------------------------------------------
 	; read data from file 
 	.while	TRUE
@@ -168,17 +194,18 @@ ImportAcitons PROC
 				mov seqIndex, 0
 				mov pathIndex, 0
 				mov tipIndex, 0
+				mov first, 0
 			;----------------------------------------
 			.endif 
 			;-------------------------------------------------------
 
 		;----------------- touch a space ---------------
-		.elseif @szReadBuffer == 32    				; touch a space 
-			
-			mov eax, curStep
-			inc eax
-			mov curStep, eax 
-
+		.elseif @szReadBuffer == 32 && curStep < 3   	; touch a space 						
+				inc curStep 							; curStep +1
+		;----------------- touch a '|' ---------------	
+		.elseif @szReadBuffer == 124 && first == 0  	; use '|' to seperate path and tip
+			inc curStep
+			inc first
 		;----------- touch char -------------------------
 		.else
 			.if curStep == 0 						; get type 
@@ -325,7 +352,7 @@ ExportActions PROC
 
 		invoke OutputSpace2File
 		invoke OutputByte2File, ADDR (ACTION PTR [edi]).path 	; output action path 
-		invoke OutputSpace2File
+		invoke OutputSplit2File, addr szSplit
 		invoke OutputByte2File, ADDR (ACTION PTR [edi]).tip 	; output action tip 
 		invoke OutputCrlf2File
 		

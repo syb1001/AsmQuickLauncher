@@ -300,10 +300,17 @@ Match PROC uses ebx edx ecx edi esi,
 			 		mov eax, (ACTION PTR [esi]).len ; eax = length of actionMap[k]
 
 			 		;--------------------------------------------------
-			 		.if eax < closestLen
+			 		comment *
+			 		.if eax < closestLen 			; minimum match 
 			 			mov ebx, counter
 			 			mov bestMatch, ebx
 			 			mov closestLen, eax 
+			 		.endif 
+			 		*
+
+			 		.if eax == seqLength
+			 			mov ebx, counter
+			 			mov bestMatch, ebx
 			 		.endif 
 			 		;---------------------------------------------------
 
@@ -494,5 +501,20 @@ TestProc PROC uses eax ebx
 
 TestProc ENDP
 
+GetTipOfBestMatch PROC
+
+	.if bestMatch >= 0
+		mov ebx, OFFSET actionMap 	; point to the first element of actionMap
+		mov esi, bestMatch			
+		mov eax, TYPE ACTION
+		mul esi  
+		lea edi, [ebx + eax]		; point to the bestMatch-th element of actionMap to insert a new ACTION
+		lea eax, (ACTION PTR [edi]).tip
+	.else
+		mov eax, 0
+	.endif 
+
+	ret 
+GetTipOfBestMatch ENDP
 
 END
