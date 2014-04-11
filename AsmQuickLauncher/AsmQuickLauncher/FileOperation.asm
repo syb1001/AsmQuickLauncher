@@ -109,10 +109,22 @@ ImportAcitons PROC
 ; and store the ACTIONs into actionMap
 ; Called when the program starts 
 ;-----------------------------------------------------
+
+	; get the absolute path of settings.ini, or file saving may fail
+	invoke GetModuleFileName, 0, offset szProcFileName, MAX_PATH
+	invoke	lstrlen, offset szProcFileName
+	mov		ecx, eax
+	.while	szProcFileName[ecx] != '\'
+		dec	ecx
+	.endw
+	inc		ecx
+	mov		szProcFileName[ecx], 0
+	invoke	lstrcat, offset szProcFileName, offset szFileName1
+
 	pushad 
 
 	;---------------- open settings.ini ------------------------------
-	INVOKE	CreateFile,addr szFileName,GENERIC_READ,FILE_SHARE_READ,0,\
+	INVOKE	CreateFile,addr szProcFileName,GENERIC_READ,FILE_SHARE_READ,0,\
 			OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0
 
 	.if	eax ==	INVALID_HANDLE_VALUE
