@@ -4,20 +4,14 @@ option casemap:none
 
 ;================Include===================
 include Declaration.inc
-;==========================================
 
 .const
 ;=============Static String================
 szClassName		db	'MyClass',0
 szCaptionMain	db	'Asm Quick Launcher',0
 szText			db	'Drag Your Mouse Here',0
-
-;===============Local Path=================
-szOpen			db	'open',0
-szPathExplorer	db	'explorer.exe',0
-szPathNotepad	db	'notepad.exe',0
-szPathText		db	'C:\\',0
-;==========================================
+szCaptionNew	db	'添加新手势？', 0
+szTextNew		db	'当前手势不匹配，是否添加为新的手势？', 0
 
 .data
 ;================Variables=================
@@ -79,6 +73,9 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 			.endif
 ;********************************************************************
 		.elseif eax == WM_LBUTTONDOWN
+			.if	functionEnabled == FALSE
+				ret
+			.endif
 			;给判断方向的点列赋初始值
 			mov edi, OFFSET trackPoint
 			movzx esi, WORD PTR lParam
@@ -104,19 +101,39 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 			mov drawLength, 1
 			
 		.elseif eax == WM_LBUTTONUP
+			.if	functionEnabled == FALSE
+				ret
+			.endif
 			mov edi, OFFSET drawPoint
 			mov al, 0
 			mov isLButtonDown, al
 
-		   	; @wxc call shellExecute here		
-			;invoke	MessageBox, 0, offset szWarning, offset szOpen, 0
-			invoke	ExecuteMatch, bestMatch
+			; call ShellExecute
+			.if	bestMatch == -1
+				.if	capturingNew == TRUE
+					; open dialog to get new gesture info
+					invoke	DialogBoxParam, hInstance, IDD_NewDialog, hWinMain, offset _ProcNewDlgMain, NULL
+				.else
+					; inquire whether to add new action
+					invoke	MessageBox, hWnd, offset szTextNew, offset szCaptionNew, MB_YESNO
+					.if	eax == IDYES
+						; open dialog to get new gesture info
+						invoke	DialogBoxParam, hInstance, IDD_NewDialog, hWinMain, offset _ProcNewDlgMain, NULL
+					.endif
+				.endif
+			.else
+				; execute the action
+				invoke	ExecuteMatch, bestMatch
+			.endif
 
 			invoke InitializeTrack			;  clear all for new track 
 			
 			invoke	InvalidateRect,hWnd,NULL,1
 
 		.elseif eax == WM_MOUSEMOVE
+			.if	functionEnabled == FALSE
+				ret
+			.endif
 			.if isLButtonDown == 1
 				mov edi, OFFSET drawPoint
 				mov ecx, drawLength

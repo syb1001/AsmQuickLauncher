@@ -51,10 +51,15 @@ Match PROTO,
 ;--------------Util----------------
 GetArrowSeq PROTO,
 	p: PTR DWORD,
-	len: DWORD
+	len: DWORD,
+	dest: PTR BYTE
 
 ExecuteMatch PROTO,
 	index: DWORD
+
+CopyAction PROTO,
+	dest: PTR ACTION,
+	src: PTR ACTION
 
 ;-------------Action---------------
 AddNewAction PROTO,
@@ -90,21 +95,25 @@ ProcessMenuEvents PROTO,
 ImportAcitons PROTO
 ExportActions PROTO
 
-;-------------Dialog---------------
-_ProcDlgMain PROTO,
+;-----------dialog proc------------
+_ProcEditDlgMain PROTO,
 	hWnd: DWORD,
 	wMsg: DWORD,
 	wParam: DWORD,
 	lParam: DWORD
 
-;-----------input box--------------
+_ProcNewDlgMain PROTO,
+	hWnd: DWORD,
+	wMsg: DWORD,
+	wParam: DWORD,
+	lParam: DWORD
+
 _ProcInputBoxMain PROTO,
 	hWnd: DWORD,
 	wMsg: DWORD,
 	wParam: DWORD,
 	lParam: DWORD
 
-;------------dir box---------------
 _ProcDirBoxMain PROTO,
 	hWnd: DWORD,
 	wMsg: DWORD,
@@ -137,25 +146,26 @@ externdef actionLen: DWORD
 externdef bestMatch: SDWORD
 
 ;---------- arrow ----------------
-externdef arrowSeq: BYTE
-externdef arrowString: BYTE
 externdef upArrow: BYTE
 externdef downArrow: BYTE
 externdef leftArrow: BYTE
 externdef rightArrow: BYTE
-
 ;-------------handler--------------
 externdef	hInstance:	DWORD
 externdef	hWinMain:	DWORD
 externdef	hMenu:		DWORD ; handler of main menu
 
+;--------------dialog--------------
+externdef	actionAddressInputBox:	DWORD
+externdef	actionAddressDirBox:	DWORD
+;-----------functional-------------
+externdef	functionEnabled:	BYTE
+externdef	capturingNew:		BYTE
+
 ;-------------windows-------------
 externdef	WINDOW_WIDTH:	DWORD
 externdef	WINDOW_HEIGHT:	DWORD
 externdef	nid:			NOTIFYICONDATA
-
-;-------------dialog---------------
-externdef	actionAddress:	DWORD
 ;----------------------------------
 
 ;==================================
@@ -180,10 +190,14 @@ IDR_MainMenu		equ		101
 ID_MenuExit			equ		40001
 ID_MenuEnable		equ		40002
 ID_MenuEdit			equ		40003
+ID_MenuNewGesture	equ		40004
+ID_MenuFront		equ		40005
+ID_MenuWindowFront	equ		40006
+ID_MenuAutoRun		equ		40007
 
 IDM_SHOW			equ		301
 IDM_EXIT			equ		302
-;--------dialog resources----------
+;----------edit dialog-------------
 IDD_EditDialog		equ		102
 IDC_GestureList		equ		1001
 IDC_GestureHint		equ		1004
@@ -193,6 +207,8 @@ IDC_ChooseDirectory	equ		1010
 IDC_EnterPath		equ		1012
 IDC_EditGesture		equ		1011
 IDC_GestureSequence	equ		1013
+;-----------new dialog-------------
+IDD_NewDialog		equ		105
 ;-----------input box--------------
 IDD_InputBox		equ		103
 IDC_InputPath		equ		1014
@@ -214,7 +230,7 @@ IDB_BOTTOMRIGHT		equ		206
 IDB_BOTTOMUP		equ		207
 IDB_BOTTOMDOWN		equ		208
 ;-------------icons----------------
-IDI_TRAY			equ		105
+IDI_TRAY			equ		106
 
 ;---------bmp attribute-------------
 BMP_BOTTOM_SIZE			equ		25

@@ -30,9 +30,6 @@
     <MASM Include="FileOperation.asm">
       <Filter>源文件</Filter>
     </MASM>
-    <MASM Include="Dialog.asm">
-      <Filter>源文件</Filter>
-    </MASM>
     <MASM Include="InputBox.asm">
       <Filter>源文件</Filter>
     </MASM>
@@ -40,6 +37,12 @@
       <Filter>源文件</Filter>
     </MASM>
     <MASM Include="Util.asm">
+      <Filter>源文件</Filter>
+    </MASM>
+    <MASM Include="NewDialog.asm">
+      <Filter>源文件</Filter>
+    </MASM>
+    <MASM Include="EditDialog.asm">
       <Filter>源文件</Filter>
     </MASM>
   </ItemGroup>
