@@ -10,12 +10,14 @@ iconText BYTE "¹þ¹þ", 0
 iconMenuClose BYTE "ÍË³ö", 0
 iconMenuOpen BYTE "ÏÔÊ¾", 0
 
+testCounter	DWORD 0
+
 .code
 DrawLine PROC uses ecx edi esi, _hDc
 		local	@stPointx, @stPointy, @edPointx, @edPointy
 
 	.if drawLength > 1
-		invoke CreatePen, PS_SOLID, 3, 0
+		invoke CreatePen, PS_SOLID, 2, 0
 		.if	eax == 0
 			mov eax, 0
 		.endif
@@ -61,9 +63,8 @@ CreateBitMap PROC, _hDc
 	invoke CreateCompatibleBitmap, _hDc, WINDOW_WIDTH, WINDOW_HEIGHT
 	mov	@hBmpBack, eax
 	invoke SelectObject, @hDcBmp, @hBmpBack
-	invoke	ReleaseDC, hWinMain, @hDc
+	invoke DeleteObject, @hBmpBack
 	invoke BitBlt, @hDcBmp, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, _hDc, 0, 0, WHITENESS
-	invoke DrawLine, @hDcBmp
 
 
 	.if lastDirection == 0
@@ -220,12 +221,17 @@ CreateBitMap PROC, _hDc
 	.endw
 
 	popad
+	invoke DrawLine, @hDcBmp
 
 	invoke BitBlt, _hDc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, @hDcBmp, 0, 0, SRCCOPY
 
 	invoke DeleteDC, @hDcBmp
 	invoke DeleteDC, @hDcDirection
-	invoke DeleteObject, @hBmpBack
+	invoke DeleteObject, @hDcBmp
+	invoke DeleteObject, @hDcDirection
+	invoke ReleaseDC, hWinMain, @hDcBmp
+	invoke ReleaseDC, hWinMain, @hDcDirection
+	invoke ReleaseDC, hWinMain, _hDc
 
 	ret
 
