@@ -23,11 +23,15 @@ hMenu				dd		? ; handler of main menu
 functionEnabled		db		TRUE
 capturingNew		db		FALSE
 
-filePath BYTE 1024 DUP(?)
 registerPath BYTE "Software\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Run", 0
 registerName BYTE "WildCat", 0
 registerDeleteName BYTE "Software\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Run\\WildCat", 0
 registerQuery BYTE 1024 DUP(?)
+
+filePath BYTE 1024 DUP(0)
+filePathFirst BYTE '"', 0
+filePathMiddle BYTE 1024 DUP(0)
+filePathLast BYTE '" /B', 0
 
 registerOpenLimitedTitle	BYTE	"提示", 0
 registerOpenLimitedText		BYTE	"请以管理员身份运行此程序", 0
@@ -35,6 +39,11 @@ registerWriteLimitedTitle	BYTE	"提示", 0
 registerWriteLimitedText	BYTE	"请以管理员身份运行此程序", 0
 registerDeleteLimitedTitle	BYTE	"提示", 0
 registerDeleteLimitedText	BYTE	"请以管理员身份运行此程序", 0
+
+registerWriteSuccessTitle	BYTE	"提示", 0
+registerWriteSuccessText	BYTE	"已成功设置为开机启动", 0
+registerDeleteSuccessTitle	BYTE	"提示", 0
+registerDeleteSuccessText	BYTE	"已成功取消开机启动", 0
 
 .code
 ProcessMenuEvents PROC,
@@ -153,7 +162,11 @@ SetNotStartupLaunch ENDP
 
 SetStartupLaunch PROC
 		local	@hRegKey:HKEY
-	invoke	GetModuleFileName, 0, ADDR filePath, 1024
+	invoke	GetModuleFileName, 0, ADDR filePathMiddle, 1024
+	invoke	lstrcat, ADDR filePath, ADDR filePathFirst
+	invoke	lstrcat, ADDR filePath, ADDR filePathMiddle
+	invoke	lstrcat, ADDR filePath, ADDR filePathLast
+
 	invoke	RegOpenKeyEx, HKEY_LOCAL_MACHINE, ADDR registerPath, 0, KEY_ALL_ACCESS , ADDR @hRegKey
 	mov esi, eax
 	.if	esi != 0
