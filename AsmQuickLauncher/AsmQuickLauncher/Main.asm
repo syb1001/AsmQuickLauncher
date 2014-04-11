@@ -126,6 +126,14 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 				invoke	ExecuteMatch, bestMatch
 			.endif
 
+		 
+			invoke GetTipOfBestMatch
+			mov ebx, eax
+			.if ebx > 0
+				invoke MessageBox, 0, ebx, ebx, 0
+			.endif 
+			
+
 			invoke InitializeTrack			;  clear all for new track 
 			
 			invoke	InvalidateRect,hWnd,NULL,1
