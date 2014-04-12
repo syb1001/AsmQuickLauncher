@@ -1,8 +1,8 @@
-/AsmQuickLauncher/Debug
-/AsmQuickLauncher/Release
-/AsmQuickLauncher/ipch
-/AsmQuickLauncher/AsmQuickLauncher/Debug
-/AsmQuickLauncher/AsmQuickLauncher/Release
+/src/Debug
+/src/Release
+/src/ipch
+/src/AsmQuickLauncher/Debug
+/src/AsmQuickLauncher/Release
 *.sdf
 *.opensdf
 *.suo
