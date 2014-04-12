@@ -96,6 +96,7 @@ ProcessMenuEvents PROC,
 	.elseif evt == ID_SHOW
 		invoke ShowWindow, hWinMain, SW_RESTORE
 		invoke Shell_NotifyIcon, NIM_DELETE, ADDR nid
+		mov WinHide, 1
 	.endif
 
 	ret
