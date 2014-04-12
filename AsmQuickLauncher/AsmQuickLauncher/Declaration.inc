@@ -23,11 +23,11 @@ includelib	advapi32.lib
 
 ;=============struct===============
 ACTION STRUCT
-	len dd 0
-	seq dd 32 DUP(0)
-	path db 1024 DUP(0)
-	tip db 1024 DUP(0)
-	pathType dd 0
+	len dd 0 			; length of seq
+	seq dd 32 DUP(0)	; direction seq 
+	path db 1024 DUP(0) ; path of responsive action/command   
+	tip db 1024 DUP(0) 	; tip of responsive action/command 
+	pathType dd 0 		; action/command type 
 ACTION ENDS
 ;==================================
 
