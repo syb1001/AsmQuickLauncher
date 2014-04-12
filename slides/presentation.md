@@ -1,61 +1,118 @@
-title: Basic Example
+title: presentation
 author:
-  name: Jordan Scales, Fan
-  email: zhuangchenfan@gmail.com
-  url: http://jordanscales.com
+  name: Quick Launcher 
+  url: 宋艺博 王学成 庄晨帆
 output: presentation.html
 theme: sudodoki/reveal-cleaver-theme
 --
 
+### 汇编大作业展示
 # QUICK LAUNCHER
-## 汇编大作业展示·鼠标手势识别+快速启动
+## 鼠标手势识别
+## ⬇
+## 快速启动
+<br>
+> 宋艺博 王学成 庄晨帆
 
 --
 
-### What's Quick Launcher
+## What's 
+# Quick Launcher 
 
-通过识别鼠标轨迹，快速启动程序，并且支持用户来新增、删除、编辑手势以及对应的动作。
+> 识别鼠标轨迹，快速启动程序
 
-<img src="flow.jpg" width="50%">
-
-%[Here's a link](http://google.com).
-
---
-
-### 基本功能
-
-* 添加手势
-* 匹配手势
-** 匹配成功，自启动
-** 匹配失败，询问是否记住该手势
-* 编辑手势
-** 删除手势
-
-光说不练假把式 [上demo](http://baidu.com).
+> 支持用户添加、删除、编辑手势
 
 --
 
-### Unicode
+## 操作流程
 
-* 林花謝了春紅 太匆匆
-* 胭脂淚 留人醉 幾時重
-* Matching Pairs «»‹› “”‘’「」〈〉《》〔〕
-* Greek αβγδ εζηθ ικλμ νξοπ ρςτυ φχψω
-* currency  ¤ $ ¢ € ₠ £ ¥
+<img src="flow.jpg">
+
 
 --
 
-### A code example
+## 基本功能
 
-```javascript
-// cool looking code
-var func = function (arg1) {
-    return function (arg2) {
-        return "arg1: " + arg1 + "arg2: " + arg2;
-    };
-};
++ 添加手势
++ 匹配手势
+	* 匹配成功→启动 
+	* 匹配失败→询问是否记住该手势
++ 编辑手势
++ 删除手势
+<br>
+[光说不练假把式→看demo](www.baidu.com).
 
-console.log(func(1)(2)); // result is three
-```
+--
 
-And here is some `inline code` to check out.
+## 核心算法
++ 坐标变换
++ 方向识别 
++ 轨迹匹配
+
+--
+
+### 坐标变换
+
+<img src="convert.jpg">
+
+--
+
+### 方向识别 
+#### 自定义象限
+
+<img src="direction.jpg">
+
+--
+
+### 方向识别 
+#### 角度计算
+
+<img src="angle.jpg"  width="250">
+
+--
+
+## 亮点
+
++ 实时方向识别、即刻动作匹配
+
+--
+
+## 亮点
+
++ 实时方向识别、即刻动作匹配
++ 支持选择/取消开机启动
+
+--
+
+## 亮点
+
++ 实时方向识别、即刻动作匹配
++ 支持选择/取消开机启动
++ 系统热键：CONTROL + Q显示/隐藏Quick Launcher
+	* 显示在所有窗口最前
+
+--
+
+## 亮点
+
++ 实时方向识别、即刻动作匹配
++ 支持选择/取消开机启动
++ 系统热键，CONTROL + Q显示/隐藏Quick Launcher
+	* 显示在所有窗口最前
++ 快速添加手势
+
+--
+
+## 亮点
+
++ 实时方向识别、即刻动作匹配
++ 支持选择/取消开机启动
++ 系统热键，CONTROL + Q显示/隐藏Quick Launcher
+	* 显示在所有窗口最前
++ 快速添加手势
++ 代码模块化，便于调试与分工
+
+--
+
+# END
