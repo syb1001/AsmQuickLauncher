@@ -223,10 +223,12 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 
 		.elseif eax == WM_SYSCOMMAND && wParam == SC_MINIMIZE
 			invoke ToTray
+			mov WinHide, 0
 		.elseif eax == WM_USER
 			.if lParam == WM_LBUTTONDOWN
 				invoke ShowWindow, hWinMain, SW_RESTORE
 				invoke Shell_NotifyIcon, NIM_DELETE, ADDR nid
+				mov WinHide, 1
 			.endif
 
 			.if lParam == WM_RBUTTONDOWN
@@ -243,8 +245,7 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 				invoke SetForegroundWindow, hWnd
 				inc WinHide
 			.elseif 
-				invoke ShowWindow, hWinMain, SW_HIDE
-				invoke Shell_NotifyIcon, NIM_ADD, ADDR nid
+				invoke ToTray
 				dec WinHide
 			.endif 
 
