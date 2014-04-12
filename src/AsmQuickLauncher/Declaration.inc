@@ -183,7 +183,10 @@ externdef	capturingNew:		BYTE
 externdef	WINDOW_WIDTH:	DWORD
 externdef	WINDOW_HEIGHT:	DWORD
 externdef	nid:			NOTIFYICONDATA
+externdef	WinHide:		DWORD
 ;----------------------------------
+
+
 
 ;==================================
 

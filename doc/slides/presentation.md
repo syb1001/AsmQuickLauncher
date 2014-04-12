@@ -25,10 +25,9 @@ theme: sudodoki/reveal-cleaver-theme
 
 --
 
-## 操作流程
+### 操作流程
 
 <img src="flow.jpg">
-
 
 --
 
@@ -45,10 +44,15 @@ theme: sudodoki/reveal-cleaver-theme
 
 --
 
-## 核心算法
-+ 坐标变换
-+ 方向识别 
-+ 轨迹匹配
+### 程序框架
+
+<img src="listen.jpg">
+
+--
+
+### 核心算法
+
+<img src="algorithm.png">
 
 --
 
@@ -69,6 +73,11 @@ theme: sudodoki/reveal-cleaver-theme
 #### 角度计算
 
 <img src="angle.jpg"  width="250">
+
+--
+
+### 轨迹匹配
+<img src="match.jpg">
 
 --
 
