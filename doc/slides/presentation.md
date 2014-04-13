@@ -4,14 +4,17 @@ author:
   url: 宋艺博 王学成 庄晨帆
 output: presentation.html
 theme: sudodoki/reveal-cleaver-theme
+
 --
 
 ### 汇编大作业展示
 # QUICK LAUNCHER
 ## 鼠标手势识别
-## ⬇
+### ⬇
 ## 快速启动
-<br>
+
+<img src="Tray.ico">
+
 > 宋艺博 王学成 庄晨帆
 
 --
@@ -39,12 +42,14 @@ theme: sudodoki/reveal-cleaver-theme
 	* 匹配失败→询问是否记住该手势
 + 编辑手势
 + 删除手势
+
 <br>
-[光说不练假把式→看demo](www.baidu.com).
+
+> [光说不练假把式→看demo](www.baidu.com).
 
 --
 
-### 程序框架
+### 程序逻辑
 
 <img src="listen.jpg">
 
@@ -56,9 +61,37 @@ theme: sudodoki/reveal-cleaver-theme
 
 --
 
+### 细节处理
+
+消除鼠标抖动-->	*~~过拟合~~*
+
+> 例如, 开始画时，手抖了一下
+
+> 又例如，画完的时候，手又抖动了一下
+
+####⬇
+
+> 极小的距离产生了一个新方向 
+
+#### 解决方案:
+> 隔距离取点
+
+--
+
 ### 坐标变换
 
 <img src="convert.jpg">
+
+--
+
+### 方向识别 
+#### 角度计算
+
+<img src="angle.jpg"  width="200">
+
+获取从绿点```P0```到蓝点```P1```的移动方向 
+
+= 向量```P0P1```与y轴所成的角度**α**
 
 --
 
@@ -67,23 +100,27 @@ theme: sudodoki/reveal-cleaver-theme
 
 <img src="direction.jpg">
 
---
-
-### 方向识别 
-#### 角度计算
-
-<img src="angle.jpg"  width="250">
+方向 = **α**所落在的区域
 
 --
 
 ### 轨迹匹配
 <img src="match.jpg">
 
+前缀匹配，线性扫描 --> [快准狠](www.baidu.com)
+
+--
+
+## 亮点
+
++ [实时方向识别、即刻动作匹配](www.baidu.com).
+
 --
 
 ## 亮点
 
 + 实时方向识别、即刻动作匹配
++ [支持选择/取消开机启动](www.baidu.com).
 
 --
 
@@ -91,6 +128,8 @@ theme: sudodoki/reveal-cleaver-theme
 
 + 实时方向识别、即刻动作匹配
 + 支持选择/取消开机启动
++ [系统热键：CONTROL + Q显示/隐藏Quick Launcher](www.baidu.com).
+	* [显示在所有窗口最前](www.baidu.com).
 
 --
 
@@ -98,8 +137,9 @@ theme: sudodoki/reveal-cleaver-theme
 
 + 实时方向识别、即刻动作匹配
 + 支持选择/取消开机启动
-+ 系统热键：CONTROL + Q显示/隐藏Quick Launcher
++ 系统热键，CONTROL + Q显示/隐藏Quick Launcher
 	* 显示在所有窗口最前
++ [快速添加手势](www.baidu.com).
 
 --
 
@@ -110,18 +150,11 @@ theme: sudodoki/reveal-cleaver-theme
 + 系统热键，CONTROL + Q显示/隐藏Quick Launcher
 	* 显示在所有窗口最前
 + 快速添加手势
++ [代码模块化，便于调试与分工](www.baidu.com).
+
 
 --
 
-## 亮点
-
-+ 实时方向识别、即刻动作匹配
-+ 支持选择/取消开机启动
-+ 系统热键，CONTROL + Q显示/隐藏Quick Launcher
-	* 显示在所有窗口最前
-+ 快速添加手势
-+ 代码模块化，便于调试与分工
-
---
-
+## HAVE FUN!
+<img src="tray.png">
 # END
