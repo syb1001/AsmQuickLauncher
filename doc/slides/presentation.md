@@ -55,9 +55,28 @@ theme: sudodoki/reveal-cleaver-theme
 
 --
 
+听说我们要用
+
+#神经网络BP#
+
+来识别轨迹？
+
+--
+
+<img src="b.png">
+
+### 还不能实时匹配！！
+
+> 据说人家chrome是这样的
+
+### ⬆⬇⬅➡
+--
+
 ### 核心算法
 
 <img src="algorithm.png">
+
+
 
 --
 
@@ -112,31 +131,48 @@ theme: sudodoki/reveal-cleaver-theme
 --
 
 ## 亮点
+#### 技术细节
 
++ [双缓冲防止屏幕疯狂闪烁](www.baidu.com).
+
+--
+
+## 亮点
+#### 技术细节
++ 双缓冲防止屏幕疯狂闪烁
 + [实时方向识别、即刻动作匹配](www.baidu.com).
 
 --
 
 ## 亮点
+#### 用户体验
 
-+ 实时方向识别、即刻动作匹配
 + [支持选择/取消开机启动](www.baidu.com).
 
 --
 
 ## 亮点
+#### 用户体验
 
-+ 实时方向识别、即刻动作匹配
 + 支持选择/取消开机启动
++ [体贴的提示](www.baidu.com).
+
+--
+
+## 亮点
+#### 用户体验
+
++ 支持选择/取消开机启动
++ 体贴的提示
 + [系统热键：CONTROL + Q显示/隐藏Quick Launcher](www.baidu.com).
 	* [显示在所有窗口最前](www.baidu.com).
 
 --
 
 ## 亮点
-
-+ 实时方向识别、即刻动作匹配
+#### 用户体验
 + 支持选择/取消开机启动
++ 体贴的提示
 + 系统热键，CONTROL + Q显示/隐藏Quick Launcher
 	* 显示在所有窗口最前
 + [快速添加手势](www.baidu.com).
@@ -144,15 +180,11 @@ theme: sudodoki/reveal-cleaver-theme
 --
 
 ## 亮点
+#### 分工合作
 
-+ 实时方向识别、即刻动作匹配
-+ 支持选择/取消开机启动
-+ 系统热键，CONTROL + Q显示/隐藏Quick Launcher
-	* 显示在所有窗口最前
-+ 快速添加手势
-+ [代码模块化，便于调试与分工](www.baidu.com).
-
-
++ git管理代码
++ [代码模块化，界面与逻辑分离，便于调试与分工](www.baidu.com).
++ 小黄鸭调试(rubber duck debugging)
 --
 
 ## HAVE FUN!
